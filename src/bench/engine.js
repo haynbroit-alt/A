@@ -105,7 +105,7 @@ export class Engine {
       montant: m == null ? null : ty.signM * m, quantite: qRec == null ? null : ty.signQ * qRec,
       objet: f.objet ?? null, contrepartie: f.cp ?? null,
       auteur: ty.auteur === 'humain' ? this.drng.pick(this.humans) : this.robot(src),
-      ref: f.ref ?? null, deltas, bank: ty.bank, dup: false,
+      ref: f.ref ?? null, deltas, bank: ty.bank, human: ty.auteur === 'humain', dup: false,
     };
     this.records.push(rec);
     return rec;
@@ -180,7 +180,8 @@ export class Engine {
     const dis = this.dis, r = this.drng;
     const recs = [];
     for (const rec of this.records) {
-      rec.jour = rec.bank ? rec.realDay : rec.realDay + r.int(0, dis.delayMax);
+      // seuls les enregistrements saisis par une personne arrivent en retard ; les systèmes automatiques horodatent
+      rec.jour = rec.human ? rec.realDay + r.int(0, dis.delayMax) : rec.realDay;
       recs.push(rec);
       if (!rec.bank && dis.dup && r.chance(dis.dup)) recs.push({ ...rec, jour: rec.jour + r.int(0, 1), dup: true });
     }

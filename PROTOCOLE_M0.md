@@ -183,6 +183,7 @@ Toutes sont calculées par l'évaluateur, après l'exécution, à partir de la v
 | Code | Métrique | Définition |
 |---|---|---|
 | **F** | regroupement des flux | F1 « B-cubé » entre types prédits et vrais types, sur les enregistrements (insensible aux noms des étiquettes) |
+| **F équilibré** | regroupement des flux, chaque vrai type pesant autant | moyenne, sur les vrais types, du F1 « B-cubé » calculé sur les seuls enregistrements de ce type *(ajouté, voir § 9, points 3 et 5)* |
 | **L** | appariement | F1 sur les paires d'enregistrements liés (clôture transitive des liens, de part et d'autre) |
 | **G** | graphe | les stocks prédits sont associés aux vrais stocks par appariement hongrois (même unité, corrélation maximale des séries) ; F1 sur les arêtes de l'incidence ainsi traduites |
 | **S** | stocks | médiane, sur les stocks associés, de l'erreur absolue moyenne de la série rapportée à l'amplitude de la vraie série |
@@ -198,7 +199,7 @@ Moyennes sur les 300 entreprises de test sauf mention contraire ; intervalles de
 
 | | Critère | Seuil |
 |---|---|---|
-| **M0-F** | regroupement des flux | F moyen ≥ 0,90, **et** supérieur au plan naïf (IC95 > 0) |
+| **M0-F** | regroupement des flux | **F équilibré** moyen ≥ 0,90, **et** supérieur au plan naïf (IC95 > 0) *(amendé, voir § 9, point 5)* |
 | **M0-L** | appariement | L moyen ≥ 0,85, **et** supérieur au plan naïf (IC95 > 0) |
 | **M0-G** | graphe | G moyen ≥ 0,85 |
 | **M0-S** | stocks | S médian ≤ 2 % |
@@ -212,7 +213,7 @@ Moyennes sur les 300 entreprises de test sauf mention contraire ; intervalles de
 « sous le seuil » détectés ; l'exactitude du typage des séries (préparation de M1) ; le temps de calcul par
 entreprise.
 
-**Critère d'abandon** : si F moyen < 0,70, ou si FD1 dépasse 25 %, le bilan de matière est rejeté sous cette forme, et
+**Critère d'abandon** : si le F équilibré moyen < 0,70 *(amendé, voir § 9, point 5)*, ou si FD1 dépasse 25 %, le bilan de matière est rejeté sous cette forme, et
 je le publie. LAVOISIER devrait alors recevoir son corps déclaré par un humain (comme CORTEX), ce qui change sa nature
 et devra être dit dans `CONCEPTION.md`.
 
@@ -279,6 +280,64 @@ suffisent souvent ; 0,012 sur le service, où une facture regroupe un mois d'heu
 P médian 85 %, aucun flux caché détecté, aucune fausse détection.
 
 ---
+
+**5. Amendement daté (13 novembre 2026), avant toute ligne du bilan de matière.** Suite au point 3, le critère M0-F
+et le critère d'abandon portent désormais sur le **F équilibré**, et non plus sur le F pondéré par le volume. Seuils
+inchangés (0,90 et 0,70). Le F pondéré reste rapporté. Motif : le F pondéré était atteint par le plan naïf (0,973) et
+ne mesurait donc pas la capacité testée. Le changement a été décidé alors qu'aucun résultat du bilan n'existait ;
+il ne peut donc pas avoir été choisi pour le favoriser. Il reste signalé ici comme une déviation au protocole initial.
+
+**6. Générateur : retards réservés aux saisies humaines.** Les enregistrements produits par un système automatique
+(caisse, prélèvements, souscriptions en ligne) sont horodatés au jour réel ; seuls ceux saisis par une personne
+peuvent arriver jusqu'à 10 jours en retard. C'est plus réaliste qu'un retard appliqué à tout ce qui n'est pas
+bancaire. Changement du banc, fait avant le bilan ; les références du plan naïf sont recalculées.
+
+**7. Première version du bilan de matière** (`src/bilan/`, non gelée). Quatre étapes, sans mot de métier (audit
+`test/bilan.test.js`) :
+- **types** : forme de l'enregistrement, puis vocabulaire des libellés (mots communs écartés, mots regroupés par
+  co-occurrence et par contrepartie) ;
+- **liens** : règles apprises des références (paires de types, délais, égalité de montant, de quantité, de
+  contrepartie, d'objet), puis recherche des liens manquants, regroupements, fractionnements, agrégations d'un jour
+  et par objet ;
+- **stocks** : comptes de trésorerie reconnus à leur relevé quotidien ; incidence des quantités sur les relevés
+  mensuels par une régression commune à tous les objets (coefficients dans {−1, 0, 1}) ; stocks en cours révélés par
+  les liens avec la trésorerie ; financement ; profit par variation de l'actif net ;
+- **écarts** : résidu exact des comptes quotidiens ; perte régulière sur les relevés mensuels (rapport de
+  vraisemblance ≥ 22 contre « pas de perte », meilleur qu'un saut et qu'une erreur de typage) ; soldes à taux
+  constant inférieur à 1 pour une contrepartie.
+
+Choix faits en développement, consignés :
+- deux types liés portant la même quantité (une intention, puis son exécution) : le mouvement de stock est attribué
+  au plus tardif tant que l'erreur reste du même ordre (×1,6), car les retards de saisie rendent les dates
+  trompeuses ;
+- les doublons ne sont jamais cherchés dans un relevé bancaire.
+
+**Résultats de développement** (`bench/DEV_M0_BILAN.md`, 100 graines, propres et réalistes mêlées ; indicatifs, ce
+ne sont pas des résultats de test) :
+
+| | Seuil | Toutes graines | Désordre réaliste seul (comme au test) |
+|---|---|---:|---:|
+| F équilibré | ≥ 0,90 et > naïf | 0,935 (naïf 0,690 ; +0,245 ± 0,016) ✅ | 0,925 ✅ |
+| L | ≥ 0,85 et > naïf | 0,857 (+0,535 ± 0,099) ✅ | 0,825 ❌ |
+| G | ≥ 0,85 | 0,908 ✅ | 0,840 ❌ |
+| S médian | ≤ 2 % | 2,4 % ❌ | 13,0 % ❌ |
+| P médian | ≤ 2 % | 15,5 % ❌ | 13,6 % ❌ |
+| R | ≥ 70 % | 72/95 = 76 % ✅ | 29/46 = 63 % ❌ |
+| FD1 placebos | ≤ 10 % | 1/34 ✅ | 1/17 ✅ |
+| FD2 | ≤ 0,10 | 0,21 ❌ | 0,30 ❌ |
+
+Lecture : **sur des données réalistes, ce bilan échouerait aujourd'hui à la plupart des critères.** Causes
+identifiées, à traiter avant tout gel :
+1. **Profit (P)** : les pièces saisies en fin de mois arrivent le mois suivant (retards), et le profit est jugé mois
+   par mois ; sur l'archétype service, presque tout le chiffre d'affaires est facturé le dernier jour.
+2. **Stocks (S)** : les stocks d'objets sont reconstruits aux dates de saisie, en retard de 0 à 10 jours sur les
+   mouvements réels ; les heures en cours souffrent du même défaut.
+3. **Fausses détections (FD2)** : sur les décomptes exacts, quelques enregistrements mal typés (bruit de libellé)
+   suffisent à créer une dérive que la détection prend pour une perte. L'explication « erreur de typage » ne la
+   capte pas encore.
+4. **Appariement réaliste (L)** : l'abonnement réaliste (0,77) perd des liens quand des types se confondent.
+
+Rien n'est gelé. Les seuils ne sont pas modifiés.
 
 ## 10. Exécution du test
 

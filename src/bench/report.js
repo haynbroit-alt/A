@@ -23,5 +23,15 @@ export function report(rows) {
     for (const l of [...new Set(R.map((r) => r.level))]) out.push(line(`désordre ${l}`, R.filter((r) => r.level === l)));
     out.push('');
   }
+  // comparaison appariée par graine avec le plan naïf (critères M0-F et M0-L)
+  const methods = [...new Set(rows.map((r) => r.method))];
+  if (methods.includes('naive')) {
+    const base = new Map(rows.filter((r) => r.method === 'naive').map((r) => [r.seed, r]));
+    for (const m of methods.filter((x) => x !== 'naive' && x !== 'parfait')) {
+      const R = rows.filter((r) => r.method === m && base.has(r.seed));
+      const d = (k) => R.map((r) => r[k] - base.get(r.seed)[k]);
+      out.push(`Comparaison appariée ${m} − naïf (${R.length} graines) : F équilibré ${fmt(d('Fmacro'))} · L ${fmt(d('L'))} · G ${fmt(d('G'))}\n`);
+    }
+  }
   return out.join('\n');
 }

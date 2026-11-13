@@ -1,6 +1,6 @@
 # Références de développement M0 (graines 1 à 100)
 
-Généré par `node src/bench/run.js --seeds 1-100 --methods naive,parfait --out bench/dev-m0-naif.json`. « parfait » est la vérité mise au format de la prédiction : il vérifie l'évaluateur, ce n'est pas une méthode.
+Généré avant le changement des retards (PROTOCOLE_M0.md, § 9, point 6) par `node src/bench/run.js --seeds 1-100 --methods naive,parfait`. Références à jour : `bench/DEV_M0_BILAN.md`. « parfait » est la vérité mise au format de la prédiction : il vérifie l'évaluateur, ce n'est pas une méthode.
 
 ### naive
 
