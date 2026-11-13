@@ -251,7 +251,32 @@ Le protocole fixe ce qui est mesuré, pas comment le système y parvient. Pour m
 (Graines 1 à 100 seulement. Chaque changement de méthode y est daté et justifié. Les hypothèses, seuils et mondes du
 § 6 ne changent pas.)
 
-*Vide à ce jour.*
+**1. Banc d'essai écrit (avant le bilan de matière).** Générateur `src/bench/` (moteur, trois archétypes de
+développement, flux cachés calibrés en deux passes), évaluateur `src/bench/evaluate.js`, plan naïf
+`src/methods/naive.js`, 14 tests (`npm test`) :
+- conservation exacte sans flux caché, et flux cachés seule source d'écart, sur données propres ;
+- aucun mot de métier dans les données observées ;
+- vérité scellée pendant l'exécution du système ;
+- une prédiction parfaite construite à partir de la vérité obtient des métriques idéales.
+
+**2. Format de l'incidence.** L'évaluateur lit la matrice d'incidence (§ 3, point 3) à partir des Δ portés par chaque
+enregistrement, plutôt qu'à partir d'une matrice par type : un type touche un stock avec un signe si l'un de ses
+enregistrements y porte un Δ de ce signe. C'est équivalent et cela permet les types qui touchent un stock par objet.
+Les métriques et seuils sont inchangés.
+
+**3. Constat sur le critère M0-F : le plan naïf l'atteint déjà.** Sur les 100 graines de développement, le plan naïf
+obtient **F = 0,973 ± 0,004** (`bench/DEV_M0_REFERENCES.md`). Le F « B-cubé » est pondéré par le nombre
+d'enregistrements, donc dominé par les types les plus volumineux (tickets de caisse, prélèvements, relevés
+d'heures), que la seule source suffit à isoler. Le seuil absolu de 0,90 ne mesure donc presque rien ; la seconde
+moitié du critère (« supérieur au plan naïf, IC95 > 0 ») reste exigeante. Le critère d'abandon F < 0,70 est, lui
+aussi, peu informatif. **Les critères pré-enregistrés ne sont pas modifiés.** J'ajoute, rapportée **sans seuil**, une
+variante équilibrée où chaque vrai type pèse autant (« F équilibré ») : le plan naïf y obtient 0,690 ± 0,019. Décision
+ouverte, à prendre avant tout développement du bilan : amender M0-F et le critère d'abandon pour qu'ils portent sur
+la variante équilibrée, en le signalant comme amendement daté, ou les garder tels quels.
+
+**4. Références de développement** (plan naïf, 100 graines) : L = 0,322 (0,836 sur l'abonnement, où les références
+suffisent souvent ; 0,012 sur le service, où une facture regroupe un mois d'heures), G = 0,090, S médian 32 %,
+P médian 85 %, aucun flux caché détecté, aucune fausse détection.
 
 ---
 
