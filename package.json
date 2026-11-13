@@ -7,6 +7,6 @@
   "engines": { "node": ">=20" },
   "scripts": {
     "test": "node --test test/*.test.js",
-    "bench:dev": "node src/bench/run.js --seeds 1-100 --methods naive,parfait"
+    "bench:dev": "node src/bench/run.js --seeds 1-100 --methods naive,bilan,parfait --out bench/dev-m0.json"
   }
 }

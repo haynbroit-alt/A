@@ -292,6 +292,53 @@ il ne peut donc pas avoir été choisi pour le favoriser. Il reste signalé ici 
 peuvent arriver jusqu'à 10 jours en retard. C'est plus réaliste qu'un retard appliqué à tout ce qui n'est pas
 bancaire. Changement du banc, fait avant le bilan ; les références du plan naïf sont recalculées.
 
+**7. Première version du bilan de matière** (`src/bilan/`, non gelée). Quatre étapes, sans mot de métier (audit
+`test/bilan.test.js`) :
+- **types** : forme de l'enregistrement, puis vocabulaire des libellés (mots communs écartés, mots regroupés par
+  co-occurrence et par contrepartie) ;
+- **liens** : règles apprises des références (paires de types, délais, égalité de montant, de quantité, de
+  contrepartie, d'objet), puis recherche des liens manquants, regroupements, fractionnements, agrégations d'un jour
+  et par objet ;
+- **stocks** : comptes de trésorerie reconnus à leur relevé quotidien ; incidence des quantités sur les relevés
+  mensuels par une régression commune à tous les objets (coefficients dans {−1, 0, 1}) ; stocks en cours révélés par
+  les liens avec la trésorerie ; financement ; profit par variation de l'actif net ;
+- **écarts** : résidu exact des comptes quotidiens ; perte régulière sur les relevés mensuels (rapport de
+  vraisemblance ≥ 22 contre « pas de perte », meilleur qu'un saut et qu'une erreur de typage) ; soldes à taux
+  constant inférieur à 1 pour une contrepartie.
+
+Choix faits en développement, consignés :
+- deux types liés portant la même quantité (une intention, puis son exécution) : le mouvement de stock est attribué
+  au plus tardif tant que l'erreur reste du même ordre (×1,6), car les retards de saisie rendent les dates
+  trompeuses ;
+- les doublons ne sont jamais cherchés dans un relevé bancaire.
+
+**Résultats de développement** (`bench/DEV_M0_BILAN.md`, 100 graines, propres et réalistes mêlées ; indicatifs, ce
+ne sont pas des résultats de test) :
+
+| | Seuil | Toutes graines | Désordre réaliste seul (comme au test) |
+|---|---|---:|---:|
+| F équilibré | ≥ 0,90 et > naïf | 0,935 (naïf 0,690 ; +0,245 ± 0,016) ✅ | 0,925 ✅ |
+| L | ≥ 0,85 et > naïf | 0,857 (+0,535 ± 0,099) ✅ | 0,825 ❌ |
+| G | ≥ 0,85 | 0,908 ✅ | 0,840 ❌ |
+| S médian | ≤ 2 % | 2,4 % ❌ | 13,0 % ❌ |
+| P médian | ≤ 2 % | 15,5 % ❌ | 13,6 % ❌ |
+| R | ≥ 70 % | 72/95 = 76 % ✅ | 29/46 = 63 % ❌ |
+| FD1 placebos | ≤ 10 % | 1/34 ✅ | 1/17 ✅ |
+| FD2 | ≤ 0,10 | 0,21 ❌ | 0,30 ❌ |
+
+Lecture : **sur des données réalistes, ce bilan échouerait aujourd'hui à la plupart des critères.** Causes
+identifiées, à traiter avant tout gel :
+1. **Profit (P)** : les pièces saisies en fin de mois arrivent le mois suivant (retards), et le profit est jugé mois
+   par mois ; sur l'archétype service, presque tout le chiffre d'affaires est facturé le dernier jour.
+2. **Stocks (S)** : les stocks d'objets sont reconstruits aux dates de saisie, en retard de 0 à 10 jours sur les
+   mouvements réels ; les heures en cours souffrent du même défaut.
+3. **Fausses détections (FD2)** : sur les décomptes exacts, quelques enregistrements mal typés (bruit de libellé)
+   suffisent à créer une dérive que la détection prend pour une perte. L'explication « erreur de typage » ne la
+   capte pas encore.
+4. **Appariement réaliste (L)** : l'abonnement réaliste (0,77) perd des liens quand des types se confondent.
+
+Rien n'est gelé. Les seuils ne sont pas modifiés.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis

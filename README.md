@@ -6,11 +6,11 @@ Conception : [CONCEPTION.md](CONCEPTION.md). Premier jalon : [PROTOCOLE_M0.md](P
 
 ## État
 
-Le banc d'essai de M0 est écrit : générateur d'entreprises opaques, évaluateur, méthode de référence naïve. Le bilan de matière (le système évalué) ne l'est pas encore.
+Le banc d'essai de M0 est écrit : générateur d'entreprises opaques, évaluateur, méthode de référence naïve. Une première version du bilan de matière (`src/bilan/`) est en développement ; elle n'est pas gelée. Résultats de développement : [bench/DEV_M0_BILAN.md](bench/DEV_M0_BILAN.md).
 
 ```bash
-npm test                                                   # 14 tests du banc
-node src/bench/run.js --seeds 1-100 --methods naive,parfait  # graines de développement
+npm test                                                   # 17 tests (banc et bilan)
+node src/bench/run.js --seeds 1-100 --methods naive,bilan,parfait  # graines de développement
 ```
 
 Les graines de test (5001 à 5300) sont refusées par le script : elles ne seront exécutées qu'une fois, après le gel.
