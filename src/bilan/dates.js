@@ -32,8 +32,8 @@ export function estimateDates(observed, typeOf, S, links, rules) {
     }
   }
   // ---- 1 bis. intervalles stables entre pièces liées : un mouvement de trésorerie (daté exactement) suit sa pièce d'un délai propre
-  // à chaque contrepartie ; une exécution suit son intention d'un délai propre à chaque objet. Le délai est estimé
-  // par clé, puis chaque date est ramenée à l'intersection de ce que disent les deux pièces ----
+  // à chaque contrepartie ; le délai est estimé par
+  // contrepartie, puis chaque date est ramenée à l'intersection de ce que disent les deux pièces ----
   const byId = new Map(observed.journal.map((r) => [r.id, r]));
   const fixed = new Set();
   const q = (arr, u) => { const s = [...arr].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(u * (s.length - 1)))]; };
@@ -54,8 +54,10 @@ export function estimateDates(observed, typeOf, S, links, rules) {
       if (ps.length < 4) continue;
       const L = ps.map(([a, b]) => a.jour - b.jour);
       if (q(L, 0.9) - q(L, 0.1) < 3 || q(L, 0.9) - q(L, 0.1) > 2 * MAX_SHIFT + 2) continue; // pas de retard visible, ou délai instable
+      // seulement si l'une des deux pièces est datée exactement (trésorerie) : entre deux pièces saisies à la main,
+      // l'écart varie aussi pour des raisons propres à l'opération, qu'on prendrait à tort pour des retards
       const aExact = S.isBank(ps[0][0]);
-      if (!aExact && process.env.EXACT_ONLY) continue;
+      if (!aExact) continue;
       const I = aExact ? q(L, 0.9) : (q(L, 0.1) + q(L, 0.9)) / 2;
       for (const [a, b] of ps) {
         if (fixed.has(b.id)) continue;
