@@ -49,7 +49,7 @@ export function inferEcarts(observed, S, typeOf, links, dup) {
   }
   // ---- 2. stocks relevés chaque mois ----
   for (const st of S.stocks.filter((x) => x.releveM)) {
-    const t = st.releveM.map((x) => x.jour), e = st.releveM.map((x) => x.valeur - (st.series[x.jour] - st.offset));
+    const t = st.releveM.map((x) => x.jour), e = st.releveM.map((x) => x.valeur - st.raw[x.jour]);
     const f = fitLoss(t, e);
     if (f.tau == null || f.rss <= 0) continue;
     const lr = f.n * Math.log(f.rss0 / f.rss), lrStep = f.n * Math.log(f.step / f.rss);
@@ -88,15 +88,21 @@ export function inferEcarts(observed, S, typeOf, links, dup) {
     for (const gs of byCp.values()) {
       gs.sort((a, b) => a.payDay - b.payDay);
       const ratio = gs.map((g) => g.paid / g.inv);
-      // plus longue suite finale de soldes au même taux ρ < 1 (à 0,5 % près)
-      let k = gs.length - 1;
-      while (k >= 0 && !(ratio[k] > 0.69 && ratio[k] < 0.998)) k--;
-      if (k < 0) continue;
-      const rho = ratio[k];
-      let j = k;
-      while (j > 0 && Math.abs(ratio[j - 1] - rho) < 0.005) j--;
-      const run = gs.slice(j, k + 1);
-      if (run.length < 3) continue;
+      // taux ρ < 1 des derniers soldes, puis le début le plus ancien à partir duquel au moins 80 % des soldes ont ce
+      // taux (à 0,5 % près) : un solde isolé hors norme (solde fractionné ou regroupé) n'interrompt pas la suite
+      const tail = ratio.filter((x) => x > 0.69 && x < 0.998).slice(-3);
+      if (tail.length < 3) continue;
+      const rho = [...tail].sort((a, b) => a - b)[1];
+      if (tail.some((x) => Math.abs(x - rho) >= 0.005)) continue;
+      const same = ratio.map((x) => Math.abs(x - rho) < 0.005);
+      let start = -1;
+      for (let i = 0; i < gs.length; i++) {
+        if (!same[i]) continue;
+        const rest = same.slice(i);
+        if (rest.filter(Boolean).length >= 3 && rest.filter(Boolean).length >= 0.8 * rest.length) { start = i; break; }
+      }
+      if (start < 0) continue;
+      const run = gs.slice(start).filter((g, k) => same[start + k]);
       const tau = run[0].payDay;
       ecarts.push({ stock: st.id, debut: tau, debit: run.reduce((s, g) => s + g.inv - g.paid, 0) / (D - tau), preuve: `${run.length} opérations soldées à ${(100 * rho).toFixed(1)} %` });
     }
