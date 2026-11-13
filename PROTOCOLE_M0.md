@@ -339,6 +339,41 @@ identifiées, à traiter avant tout gel :
 
 Rien n'est gelé. Les seuils ne sont pas modifiés.
 
+**8. Dates réelles, doublons et lots censurés** (développement, non gelé). Une expérience de diagnostic
+(`scripts/dev-oracle-dates.mjs`, qui donne délibérément au bilan les vraies dates, jamais utilisée comme méthode) a
+montré que les retards de saisie expliquaient l'essentiel de l'erreur sur les stocks (S médian réaliste 12,4 % →
+2,1 % avec les vraies dates) et la moitié de celle sur le profit (13,9 % → 7,2 %). Ajouts, tous fondés sur la
+conservation ou le calendrier :
+- `dates.js` : lots de fin de mois redatés à la fin de mois ; décalage moyen de saisie par type estimé sur les
+  relevés mensuels ; une entrée saisie en retard est ramenée au jour où, sans elle, un stock relevé deviendrait
+  négatif ; un lot de fin d'année saisi après la fin des données est estimé (moyenne des trois derniers), pour le seul
+  calcul des stocks et du profit, sans apparaître dans la déclaration ;
+- doublons révélés par un surplus d'agrégation journalière égal à une pièce qui a une jumelle ;
+- erreurs de saisie de quantité arbitrées par le relevé, quand une pièce et sa pièce liée ne s'accordent pas ;
+- règle d'appariement retenue aussi quand elle couvre une bonne part du type cible (les cotisations, minoritaires
+  dans un type bancaire fusionné, perdaient leur stock en cours) ;
+- coût unitaire des objets : un test de signe faux l'annulait, et l'actif net ignorait les stocks d'objets ;
+- vocabulaire commun plus strict (un mot de bruit fréquent dans deux petits groupes passait pour commun) ;
+- le mouvement d'un couple intention/exécution est porté par le plus tardif tant que l'erreur ne dépasse pas le
+  triple (au lieu de ×1,6).
+
+Résultats de développement après ces ajouts (`bench/DEV_M0_BILAN.md`) :
+
+| | Seuil | Toutes graines | Réaliste seul (comme au test) |
+|---|---|---:|---:|
+| F équilibré | ≥ 0,90 et > naïf | 0,934 (+0,244 ± 0,017) ✅ | 0,923 ✅ |
+| L | ≥ 0,85 et > naïf | 0,856 (+0,534 ± 0,100) ✅ | 0,824 ❌ |
+| G | ≥ 0,85 | 0,918 ✅ | 0,854 ✅ (de justesse) |
+| S médian | ≤ 2 % | 1,6 % ✅ | 6,1 % ❌ |
+| P médian | ≤ 2 % | 3,8 % ❌ | 6,1 % ❌ |
+| R | ≥ 70 % | 70/95 = 74 % ✅ | 29/46 = 63 % ❌ |
+| FD1 placebos | ≤ 10 % | 1/34 ✅ | 1/17 ✅ |
+| FD2 | ≤ 0,10 | 0,20 ❌ | 0,30 ❌ |
+
+Le profit (P) passe de 15,5 % à 3,8 % et les stocks (S) de 2,4 % à 1,6 %. Sur données réalistes, quatre critères
+échoueraient encore ; le négoce porte l'essentiel de l'erreur sur les stocks et le profit (7,6 % et 6,5 %), et
+l'abonnement celle de l'appariement (0,77) et des fausses détections. Rien n'est gelé ; les seuils sont inchangés.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
