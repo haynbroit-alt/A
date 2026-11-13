@@ -10,15 +10,15 @@ export function inferTypes(journal) {
   const groups = new Map();
   for (const r of journal) { const k = shapeKey(r); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); }
   const words = (r) => [...new Set(r.libelle.split(' ').filter((w) => !isNum(w)))];
-  // vocabulaire commun : mots fréquents (≥ 3 %) dans au moins 40 % des groupes d'au moins 20 enregistrements
+  // vocabulaire commun : mots fréquents (≥ 4 %) dans au moins 60 % (et au moins 3) des groupes d’au moins 20 enregistrements
   const big = [...groups.values()].filter((g) => g.length >= 20);
   const spread = new Map();
   for (const g of big) {
     const c = new Map();
     for (const r of g) for (const w of words(r)) c.set(w, (c.get(w) ?? 0) + 1);
-    for (const [w, n] of c) if (n >= 0.03 * g.length) spread.set(w, (spread.get(w) ?? 0) + 1);
+    for (const [w, n] of c) if (n >= 0.04 * g.length) spread.set(w, (spread.get(w) ?? 0) + 1);
   }
-  const common = new Set([...spread].filter(([, n]) => big.length >= 3 && n >= 0.4 * big.length).map(([w]) => w));
+  const common = new Set([...spread].filter(([, n]) => big.length >= 3 && n >= Math.max(3, 0.6 * big.length)).map(([w]) => w));
   const type = new Map();
   const ambiguous = new Set();
   for (const [k, g] of groups) {

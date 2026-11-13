@@ -44,7 +44,9 @@ export function inferLinks(journal, typeOf) {
   }
   const rules = [];
   for (const p of pairs.values()) {
-    if (p.obs.length < 3 || p.obs.length < 0.2 * withRef.get(p.ta)) continue;
+    // règle retenue si la paire pèse dans les références du type source, ou si elle couvre une bonne part du type cible
+    const nb = (byType.get(p.tb) ?? []).length;
+    if (p.obs.length < 3 || (p.obs.length < 0.2 * withRef.get(p.ta) && p.obs.length < 0.3 * nb)) continue;
     const frac = (f) => p.obs.filter(f).length / p.obs.length;
     const lags = p.obs.map(([a, b]) => a.jour - b.jour).sort((x, y) => x - y);
     const q = (u) => lags[Math.min(lags.length - 1, Math.floor(u * lags.length))];
@@ -142,7 +144,20 @@ export function inferLinks(journal, typeOf) {
         const S = daySums.get(ta);
         const hits = B.filter((b) => near(absM(b), S.get(b.jour - k)?.m, 0.05));
         if (hits.length < 0.5 * B.length) continue;
-        for (const b of B) for (const id of S.get(b.jour - k)?.ids ?? []) link(b.id, id);
+        for (const b of B) {
+          const ids = S.get(b.jour - k)?.ids ?? [];
+          for (const id of ids) link(b.id, id);
+          // conservation : un surplus exactement égal à une pièce qui a une jumelle (mêmes valeurs, même jour ou
+          // la veille) révèle un doublon
+          const surplus = (S.get(b.jour - k)?.m ?? 0) - absM(b);
+          if (surplus <= EPS) continue;
+          const prev = S.get(b.jour - k - 1)?.ids ?? [];
+          const twinKey = (r) => [r.montant, r.quantite, r.objet].join('|');
+          const keys = new Map();
+          for (const id of [...prev, ...ids]) { const r = byId.get(id), kk = twinKey(r); keys.set(kk, (keys.get(kk) ?? 0) + 1); }
+          const d = ids.map((id) => byId.get(id)).find((r) => near(absM(r), surplus, 0.02) && keys.get(twinKey(r)) >= 2);
+          if (d) dup.add(d.id);
+        }
         break;
       }
     }
