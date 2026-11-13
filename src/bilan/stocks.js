@@ -106,14 +106,14 @@ export function inferStocks(observed, typeOf, links, dup, rules = []) {
       for (let code = 1; code < total; code++) { const c = []; let x = code; for (let j = 0; j < types.length; j++) { c.push((x % 3) - 1); x = Math.floor(x / 3); } const e = err(c); if (e < be) { be = e; best = c; } }
     } else best = solve(A, b).map((x) => (Math.abs(x) < 0.3 ? 0 : Math.sign(x)));
     // un enregistrement qui en reprend un autre avec la même quantité (règle apprise des références) est daté de
-    // l'exécution, l'autre de l'intention : tant que l’erreur reste du même ordre (les retards de saisie brouillent les dates), le mouvement est porté par le plus tardif
+    // l'exécution, l'autre de l'intention : tant que l’erreur reste du même ordre (au plus le triple) (les retards de saisie brouillent les dates), le mouvement est porté par le plus tardif
     for (const rule of rules) {
       if (!rule.qq || rule.med <= 0) continue;
       const ja = types.indexOf(rule.ta), jb = types.indexOf(rule.tb);
       if (ja < 0 || jb < 0 || !best[jb] || best[ja]) continue;
       const sa = Math.sign(qTypes.get(rule.ta)[0].quantite), sb = Math.sign(qTypes.get(rule.tb)[0].quantite);
       const alt = [...best]; alt[ja] = best[jb] * sb * sa; alt[jb] = 0;
-      if (err(alt) <= 1.6 * be) best = alt;
+      if (err(alt) <= 3 * be) best = alt;
     }
     types.forEach((t, j) => vote(t, best[j]));
   }
@@ -124,6 +124,7 @@ export function inferStocks(observed, typeOf, links, dup, rules = []) {
     invStock.set(rl.cle, st);
   }
   for (const [t, rs] of qTypes) { const c = coef(t); if (!c) continue; for (const r of rs) { const st = invStock.get(r.objet); if (st) put(r, st, c * r.quantite); } }
+  const invById = new Map([...invStock.values()].map((st) => [st.id, st]));
   // décomptes : relevés mensuels qui ne portent pas le nom d'un objet ; on cherche l'objet dont les quantités les expliquent
   const usedObj = new Set(invStock.keys());
   for (const rl of countStocks) {
@@ -198,6 +199,28 @@ export function inferStocks(observed, typeOf, links, dup, rules = []) {
     for (const r of outs) if (r.montant === m0) put(r, st, r.montant);
   }
 
+  // ---- erreurs de saisie de quantité : une pièce qui porte le mouvement et sa pièce liée (même quantité attendue)
+  // ne s'accordent pas ; on garde la valeur qui rapproche le stock reconstruit de son relevé ----
+  for (const rule of rules) {
+    if (!rule.qq) continue;
+    for (const r of journal) {
+      if (T(r) !== rule.ta && T(r) !== rule.tb) continue;
+      const dl = deltas.get(r.id).find(([sid]) => invById.get(sid));
+      if (!dl) continue;
+      const st = invById.get(dl[0]);
+      const other = [...links.get(r.id)].map((x) => byId.get(x)).find((o) => o.quantite != null && (T(o) === rule.ta || T(o) === rule.tb) && T(o) !== T(r));
+      if (!other || Math.abs(Math.abs(other.quantite) - Math.abs(r.quantite)) < 1e-9) continue;
+      const days = st.releveM.map((x) => x.jour), y = st.releveM.map((x) => x.valeur);
+      const k = days.findIndex((d) => r.jour <= d);
+      if (k <= 0) continue;
+      let flow = 0;
+      for (let d = days[k - 1] + 1; d <= days[k]; d++) flow += st.daily[d];
+      const resid = y[k] - y[k - 1] - flow;
+      const newDelta = Math.sign(dl[1]) * Math.abs(other.quantite), change = newDelta - dl[1];
+      if (Math.abs(resid - change) < Math.abs(resid)) { st.daily[r.jour] += change; dl[1] = newDelta; }
+    }
+  }
+
   // ---- séries : intégration des Δ, calée sur les relevés quand il y en a ----
   for (const st of stocks) {
     const s = new Float64Array(D);
@@ -222,7 +245,7 @@ export function inferStocks(observed, typeOf, links, dup, rules = []) {
   const inQ = new Map(), inM = new Map();
   for (const r of journal) {
     if (dup.has(r.id) || r.objet == null || !invStock.has(r.objet)) continue;
-    if (r.quantite != null && coef(T(r)) > 0) inQ.set(comp.get(r.id), [r.objet, Math.abs(r.quantite)]);
+    if (r.quantite != null && coef(T(r)) * r.quantite > 0) inQ.set(comp.get(r.id), [r.objet, Math.abs(r.quantite)]);
   }
   const cost = new Map();
   for (const r of journal) {
