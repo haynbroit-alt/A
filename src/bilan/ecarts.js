@@ -89,7 +89,7 @@ export function inferEcarts(observed, S, typeOf, links, dup) {
       gs.sort((a, b) => a.payDay - b.payDay);
       const ratio = gs.map((g) => g.paid / g.inv);
       // taux ρ < 1 des derniers soldes, puis le début le plus ancien à partir duquel au moins 80 % des soldes ont ce
-      // taux (à 0,5 % près) : un solde isolé hors norme (paiement fractionné, regroupé) n'interrompt pas la suite
+      // taux (à 0,5 % près) : un solde isolé hors norme (solde fractionné ou regroupé) n'interrompt pas la suite
       const tail = ratio.filter((x) => x > 0.69 && x < 0.998).slice(-3);
       if (tail.length < 3) continue;
       const rho = [...tail].sort((a, b) => a - b)[1];
