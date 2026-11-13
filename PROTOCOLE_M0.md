@@ -183,6 +183,7 @@ Toutes sont calculées par l'évaluateur, après l'exécution, à partir de la v
 | Code | Métrique | Définition |
 |---|---|---|
 | **F** | regroupement des flux | F1 « B-cubé » entre types prédits et vrais types, sur les enregistrements (insensible aux noms des étiquettes) |
+| **F équilibré** | regroupement des flux, chaque vrai type pesant autant | moyenne, sur les vrais types, du F1 « B-cubé » calculé sur les seuls enregistrements de ce type *(ajouté, voir § 9, points 3 et 5)* |
 | **L** | appariement | F1 sur les paires d'enregistrements liés (clôture transitive des liens, de part et d'autre) |
 | **G** | graphe | les stocks prédits sont associés aux vrais stocks par appariement hongrois (même unité, corrélation maximale des séries) ; F1 sur les arêtes de l'incidence ainsi traduites |
 | **S** | stocks | médiane, sur les stocks associés, de l'erreur absolue moyenne de la série rapportée à l'amplitude de la vraie série |
@@ -198,7 +199,7 @@ Moyennes sur les 300 entreprises de test sauf mention contraire ; intervalles de
 
 | | Critère | Seuil |
 |---|---|---|
-| **M0-F** | regroupement des flux | F moyen ≥ 0,90, **et** supérieur au plan naïf (IC95 > 0) |
+| **M0-F** | regroupement des flux | **F équilibré** moyen ≥ 0,90, **et** supérieur au plan naïf (IC95 > 0) *(amendé, voir § 9, point 5)* |
 | **M0-L** | appariement | L moyen ≥ 0,85, **et** supérieur au plan naïf (IC95 > 0) |
 | **M0-G** | graphe | G moyen ≥ 0,85 |
 | **M0-S** | stocks | S médian ≤ 2 % |
@@ -212,7 +213,7 @@ Moyennes sur les 300 entreprises de test sauf mention contraire ; intervalles de
 « sous le seuil » détectés ; l'exactitude du typage des séries (préparation de M1) ; le temps de calcul par
 entreprise.
 
-**Critère d'abandon** : si F moyen < 0,70, ou si FD1 dépasse 25 %, le bilan de matière est rejeté sous cette forme, et
+**Critère d'abandon** : si le F équilibré moyen < 0,70 *(amendé, voir § 9, point 5)*, ou si FD1 dépasse 25 %, le bilan de matière est rejeté sous cette forme, et
 je le publie. LAVOISIER devrait alors recevoir son corps déclaré par un humain (comme CORTEX), ce qui change sa nature
 et devra être dit dans `CONCEPTION.md`.
 
@@ -279,6 +280,17 @@ suffisent souvent ; 0,012 sur le service, où une facture regroupe un mois d'heu
 P médian 85 %, aucun flux caché détecté, aucune fausse détection.
 
 ---
+
+**5. Amendement daté (13 novembre 2026), avant toute ligne du bilan de matière.** Suite au point 3, le critère M0-F
+et le critère d'abandon portent désormais sur le **F équilibré**, et non plus sur le F pondéré par le volume. Seuils
+inchangés (0,90 et 0,70). Le F pondéré reste rapporté. Motif : le F pondéré était atteint par le plan naïf (0,973) et
+ne mesurait donc pas la capacité testée. Le changement a été décidé alors qu'aucun résultat du bilan n'existait ;
+il ne peut donc pas avoir été choisi pour le favoriser. Il reste signalé ici comme une déviation au protocole initial.
+
+**6. Générateur : retards réservés aux saisies humaines.** Les enregistrements produits par un système automatique
+(caisse, prélèvements, souscriptions en ligne) sont horodatés au jour réel ; seuls ceux saisis par une personne
+peuvent arriver jusqu'à 10 jours en retard. C'est plus réaliste qu'un retard appliqué à tout ce qui n'est pas
+bancaire. Changement du banc, fait avant le bilan ; les références du plan naïf sont recalculées.
 
 ## 10. Exécution du test
 
