@@ -498,6 +498,34 @@ atteint. Rien n'est gelé.
     que le moteur soit meilleur là où il sera jugé. Reste à faire : redater les pièces du désordre réaliste, dont
     le solde est regroupé ou fractionné, et celles qui n'ont aucun ancrage exact.
 
+14. **Redater une à une les entrées d'un stock relevé chaque mois (15 novembre 2026, écrit avant le code).**
+    Diagnostic sur les 17 graines de développement du troisième archétype en désordre réaliste (P médian 7,34 %,
+    S médian 10,67 %), par un oracle qui donne leur vraie date à une seule famille de pièces : les entrées de stock
+    saisies à la main → S 2,71 %, P 5,46 % ; les pièces soldées par une entrée de trésorerie → P 7,13 % ; celles
+    soldées par une sortie → P 6,66 % ; toutes les dates → S 0,88 %, P 1,93 %. Sur la graine 21, 32 entrées de
+    stock sur 279 sont dans le mauvais mois avant comme après la datation actuelle : l'étape 2 ne sait appliquer
+    qu'un décalage commun à tout un type, et ne corrige donc aucune pièce en particulier.
+
+    Changement prévu (`src/bilan/dates.js`, nouvelle étape 4, après les étapes 2 et 3) : sur chaque stock relevé
+    chaque mois, pour chaque relevé encadré par deux autres, on compare la variation relevée à la variation
+    enregistrée, avant et après ce relevé. Une pièce non ancrée par un lien exact, saisie dans les 10 jours qui
+    suivent le relevé, est ramenée au jour du relevé **si ce déplacement réduit à la fois l'écart de la période qui
+    précède et celui de la période qui suit**. Symétriquement, une pièce que l'étape 2 a avancée avant le relevé
+    alors qu'elle a été saisie après est remise au lendemain du relevé, à la même condition. Aucun seuil, aucune
+    tolérance réglable.
+
+    Justification : une entrée produite avant un relevé et saisie après manque au relevé d'avant et se retrouve en
+    trop dans la variation d'après, de la même quantité. Une perte réelle ne fait jamais cela : elle manque aux deux
+    périodes et ne se rattrape pas ; elle ne peut donc pas satisfaire la condition, et la règle ne peut pas la
+    masquer (c'était le défaut de l'essai (c) du point 13, qui n'exigeait qu'un seul écart expliqué).
+
+    Attendu : sur le troisième archétype en désordre réaliste, S médian entre 2,7 % (l'oracle) et 6 %, P médian
+    entre 5,5 % et 6,8 % ; sur le désordre réaliste entier, S médian sous 2 %, P médian entre 4,5 et 5,0 % ; sur les
+    100 graines, P médian à peu près inchangé (2,2 à 2,3 %), car la médiane générale est portée par les deux autres
+    archétypes. Garde-fous sur les 100 graines : R au moins 76/95, FD2 au plus 0,10, FD1 au plus 1/34, F équilibré,
+    L et G sans baisse de plus de 0,005, S médian sans hausse. Limite connue : le dernier relevé de l'année n'a pas
+    de période suivante, la règle ne s'y applique pas. Le seuil de 2 % sur P ne sera pas atteint par ce seul point.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
