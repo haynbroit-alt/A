@@ -1,6 +1,6 @@
 // LAVOISIER — organe 1 : le bilan de matière (protocole M0).
 // Entrée : les seules données observées. Sortie : la déclaration de corps (format de src/bench/evaluate.js).
-import { inferTypes } from './types.js';
+import { inferTypes, adoptCounterpartType } from './types.js';
 import { inferLinks } from './links.js';
 import { inferStocks } from './stocks.js';
 import { inferEcarts } from './ecarts.js';
@@ -8,8 +8,9 @@ import { estimateDates, imputeCensored } from './dates.js';
 
 export function bilan(observed) {
   const { journal } = observed;
-  const typeOf = inferTypes(journal);
-  const { links, dup, rules } = inferLinks(journal, typeOf);
+  const typeOf0 = inferTypes(journal);
+  const { links, dup, rules } = inferLinks(journal, typeOf0);
+  const typeOf = adoptCounterpartType(journal, typeOf0);
   // premier passage aux dates de saisie, puis estimation des dates réelles et second passage
   const S0 = inferStocks(observed, typeOf, links, new Set(dup), rules);
   const { day, batch } = estimateDates(observed, typeOf, S0, links, rules);
