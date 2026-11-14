@@ -498,6 +498,78 @@ atteint. Rien n'est gelé.
     que le moteur soit meilleur là où il sera jugé. Reste à faire : redater les pièces du désordre réaliste, dont
     le solde est regroupé ou fractionné, et celles qui n'ont aucun ancrage exact.
 
+14. **Redater une à une les entrées d'un stock relevé chaque mois (15 novembre 2026, écrit avant le code).**
+    Diagnostic sur les 17 graines de développement du troisième archétype en désordre réaliste (P médian 7,34 %,
+    S médian 10,67 %), par un oracle qui donne leur vraie date à une seule famille de pièces : les entrées de stock
+    saisies à la main → S 2,71 %, P 5,46 % ; les pièces soldées par une entrée de trésorerie → P 7,13 % ; celles
+    soldées par une sortie → P 6,66 % ; toutes les dates → S 0,88 %, P 1,93 %. Sur la graine 21, 32 entrées de
+    stock sur 279 sont dans le mauvais mois avant comme après la datation actuelle : l'étape 2 ne sait appliquer
+    qu'un décalage commun à tout un type, et ne corrige donc aucune pièce en particulier.
+
+    Changement prévu (`src/bilan/dates.js`, nouvelle étape 4, après les étapes 2 et 3) : sur chaque stock relevé
+    chaque mois, pour chaque relevé encadré par deux autres, on compare la variation relevée à la variation
+    enregistrée, avant et après ce relevé. Une pièce non ancrée par un lien exact, saisie dans les 10 jours qui
+    suivent le relevé, est ramenée au jour du relevé **si ce déplacement réduit à la fois l'écart de la période qui
+    précède et celui de la période qui suit**. Symétriquement, une pièce que l'étape 2 a avancée avant le relevé
+    alors qu'elle a été saisie après est remise au lendemain du relevé, à la même condition. Aucun seuil, aucune
+    tolérance réglable.
+
+    Justification : une entrée produite avant un relevé et saisie après manque au relevé d'avant et se retrouve en
+    trop dans la variation d'après, de la même quantité. Une perte réelle ne fait jamais cela : elle manque aux deux
+    périodes et ne se rattrape pas ; elle ne peut donc pas satisfaire la condition, et la règle ne peut pas la
+    masquer (c'était le défaut de l'essai (c) du point 13, qui n'exigeait qu'un seul écart expliqué).
+
+    Attendu : sur le troisième archétype en désordre réaliste, S médian entre 2,7 % (l'oracle) et 6 %, P médian
+    entre 5,5 % et 6,8 % ; sur le désordre réaliste entier, S médian sous 2 %, P médian entre 4,5 et 5,0 % ; sur les
+    100 graines, P médian à peu près inchangé (2,2 à 2,3 %), car la médiane générale est portée par les deux autres
+    archétypes. Garde-fous sur les 100 graines : R au moins 76/95, FD2 au plus 0,10, FD1 au plus 1/34, F équilibré,
+    L et G sans baisse de plus de 0,005, S médian sans hausse. Limite connue : le dernier relevé de l'année n'a pas
+    de période suivante, la règle ne s'y applique pas. Le seuil de 2 % sur P ne sera pas atteint par ce seul point.
+
+    **Constat à la première mesure, et complément écrit avant de le coder.** L'étape 4 appliquée seule ne change
+    presque rien (troisième archétype réaliste : S 10,67 → 9,45 %, P 7,34 → 7,33 %). Cause : sur certaines graines
+    (15 et 21 parmi onze regardées), le premier passage ne trouve **aucune incidence** des types sur les stocks
+    relevés — les retards de saisie font que « ne rien attribuer » explique mieux les variations mensuelles que la
+    bonne attribution — et les étapes 2, 3 et 4, qui ont besoin de cette incidence, ne s'exécutent pas. Le second
+    passage, lui, la trouve. Complément prévu (`src/bilan/index.js`) : **un second tour** — les dates sont
+    réestimées avec l'incidence trouvée au second passage, puis les stocks recalculés. Justification : les dates ont
+    besoin de l'incidence et l'incidence a besoin des dates ; un seul aller ne suffit pas quand le premier passage
+    est aveugle. Mesure préalable hors du dépôt, sur les 17 mêmes graines : P médian 7,33 → 5,90 % (graine 21 :
+    8,9 → 2,0 %), S médian 9,45 → 9,15 %. L'attente sur P (5,5 à 6,8 %) serait tenue ; **celle sur S (2,7 à 6 %) ne
+    le sera pas** : l'étape 4 ne déplace que les pièces qui franchissent un relevé, alors que S se joue aussi au jour
+    près à l'intérieur du mois. Mêmes garde-fous sur les 100 graines.
+
+    **Résultat sur ce dépôt (banc complet, 100 graines) : non retenu.** Deux garde-fous sont franchis, dans les
+    deux variantes :
+
+    | | Avant (point 12) | Étape 4 seule | Étape 4 et second tour | Garde-fou |
+    |---|---:|---:|---:|---|
+    | P médian, tout | 2,27 % | **1,85 %** | **1,85 %** | — |
+    | P médian, désordre réaliste | 5,08 % | 4,37 % | 3,81 % | — |
+    | P médian, troisième archétype réaliste | 7,34 % | 7,33 % | 5,90 % | — |
+    | S médian, tout | 0,68 % | 0,68 % | 0,68 % | sans hausse ✅ |
+    | R | 80/95 | 84/95 | 82/95 | ≥ 76/95 ✅ |
+    | F équilibré · L · G | 0,944 · 0,856 · 0,941 | inchangés | inchangés | ✅ |
+    | FD1, placebos touchés | 1/34 | **2/34** | **2/34** | ≤ 1/34 ❌ |
+    | FD2, par entreprise à flux cachés | 0,09 | **0,15** | **0,17** | ≤ 0,10 ❌ |
+
+    La datation fait bien ce qu'on attendait d'elle : le profit passe sous 2 % sur les 100 graines et quatre flux
+    cachés de plus sont retrouvés. Mais huit fausses détections apparaissent, toutes sur des stocks d'objets du
+    troisième archétype (graines 24, 39, 57, 72, 75 deux fois, 84, 88 ; la graine 21 s'y ajoute avec le second
+    tour). Le code est donc **retiré** de `src/bilan/` ; il est conservé, non appliqué, dans
+    `bench/essais/point14-etape4.patch`. Le seuil de 2 % atteint ici ne compte pas : il est payé par des fausses
+    alertes, et sur le désordre réaliste P reste à 3,8 % au mieux.
+
+    Cause probable des fausses détections, **non vérifiée** : la détection d'un manque sur un stock d'objets se
+    règle sur la dispersion de la série elle-même ; une série nettoyée de ses pièces mal datées devient assez lisse
+    pour que de petits défauts restants passent pour des manques — en particulier dans la dernière période, où des
+    sorties saisies après la fin des données manquent au journal (sur la graine 21 : un « manque » de 1,4 unité par
+    jour à partir du jour 326). Prochain pas, avant de réappliquer ce point : rendre la détection insensible à la
+    propreté de la série et à la censure de fin d'année, puis remesurer.
+
+    Autre constat à garder : sur certaines graines réalistes, le premier passage ne trouve aucune incidence des
+    types sur les stocks relevés, et aucune des étapes de datation par quantités ne s'exécute.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
