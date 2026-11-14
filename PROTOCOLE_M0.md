@@ -397,6 +397,10 @@ fausses détections restantes viennent des décomptes de l'abonnement (4) et d'u
 Réserve : ces règles sont mises au point sur les graines de développement ; seul le test dira si elles tiennent.
 Test de non-régression ajouté (`test/bilan.test.js`, graine 21). Rien n'est gelé ; les seuils sont inchangés.
 
+*Note de fusion.* Ce point a été mesuré sur une branche partie avant la fusion de la PR n° 6. Sur la branche
+principale qui réunit les deux (`bench/DEV_M0_BILAN.md`) : FD2 0,09 sur toutes les graines et 0,15 sur données
+réalistes seules ; R 80/95 et 37/46 ; G 0,939 ; P médian 3,8 %. Le tableau ci-dessus reste celui de la branche seule.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
