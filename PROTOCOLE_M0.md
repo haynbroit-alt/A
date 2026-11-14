@@ -460,6 +460,25 @@ Reste à faire, non écrit : retirer du profit les écarts déclarés (C) ; mieu
 en données propres tient à un retard de saisie d'un jour sans régularité exploitable. Le seuil de profit n'est pas
 atteint. Rien n'est gelé.
 
+12. **Retirer de l'actif net le manque des écarts déclarés sur un stock en cours (14 novembre 2026, écrit avant le
+    code).** Mesure préalable hors code, par un oracle qui retire du profit, au jour près, les pertes vraies d'un
+    seul mécanisme, sur les 100 graines de développement : P médian 2,89 % → 2,27 % si le mécanisme C du point 11
+    était exact. Le chiffre de 0,85 point donné au point 11 datait d'avant son correctif ; il vaut 0,62 point.
+    Par classe : service 0,85 → 0,49 %, abonnement et négoce inchangés (4,08 et 5,53 %). Le même oracle sur les deux
+    autres natures de flux caché ne gagne rien. Conclusion anticipée : C seul ne fait pas passer P sous 2 %.
+
+    Changement prévu (`src/bilan/ecarts.js`, `src/bilan/stocks.js`, `src/bilan/index.js`) : quand l'étape 3 des
+    écarts déclare qu'une contrepartie solde ses opérations à un taux constant ρ < 1 à partir d'une date, la part non
+    soldée de chacune des opérations du régime soldées à ce taux est retirée du stock en cours au jour du solde, puis
+    la série de ce stock et le profit mensuel sont recalculés. Les opérations isolées à un autre taux ne sont pas
+    touchées. Justification : un écart déclaré dit que la part non soldée ne reviendra jamais ; la laisser dans le
+    stock compte comme actif ce qui a disparu. Aucun seuil nouveau.
+
+    Attendu : P médian entre 2,3 et 2,5 % (le gain ne peut dépasser l'oracle) ; service vers 0,5 % ; S médian
+    inchangé ou meilleur ; F, L, G, R, FD1, FD2 inchangés, puisque ni la déclaration des écarts ni l'incidence ne
+    bougent. Travail préparé sur une copie privée, graines 1 à 100 seulement ; résultat ci-dessous après
+    vérification sur le dépôt.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
