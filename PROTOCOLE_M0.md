@@ -526,6 +526,19 @@ atteint. Rien n'est gelé.
     L et G sans baisse de plus de 0,005, S médian sans hausse. Limite connue : le dernier relevé de l'année n'a pas
     de période suivante, la règle ne s'y applique pas. Le seuil de 2 % sur P ne sera pas atteint par ce seul point.
 
+    **Constat à la première mesure, et complément écrit avant de le coder.** L'étape 4 appliquée seule ne change
+    presque rien (troisième archétype réaliste : S 10,67 → 9,45 %, P 7,34 → 7,33 %). Cause : sur certaines graines
+    (15 et 21 parmi onze regardées), le premier passage ne trouve **aucune incidence** des types sur les stocks
+    relevés — les retards de saisie font que « ne rien attribuer » explique mieux les variations mensuelles que la
+    bonne attribution — et les étapes 2, 3 et 4, qui ont besoin de cette incidence, ne s'exécutent pas. Le second
+    passage, lui, la trouve. Complément prévu (`src/bilan/index.js`) : **un second tour** — les dates sont
+    réestimées avec l'incidence trouvée au second passage, puis les stocks recalculés. Justification : les dates ont
+    besoin de l'incidence et l'incidence a besoin des dates ; un seul aller ne suffit pas quand le premier passage
+    est aveugle. Mesure préalable hors du dépôt, sur les 17 mêmes graines : P médian 7,33 → 5,90 % (graine 21 :
+    8,9 → 2,0 %), S médian 9,45 → 9,15 %. L'attente sur P (5,5 à 6,8 %) serait tenue ; **celle sur S (2,7 à 6 %) ne
+    le sera pas** : l'étape 4 ne déplace que les pièces qui franchissent un relevé, alors que S se joue aussi au jour
+    près à l'intérieur du mois. Mêmes garde-fous sur les 100 graines.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
