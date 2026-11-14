@@ -387,12 +387,12 @@ s'arrêtait au premier solde isolé à un autre taux (pièce mal appariée, erre
 
 | | Seuil | Avant | Après (toutes graines) | Après (réaliste seul) |
 |---|---|---:|---:|---:|
-| R | ≥ 70 % | 70/95 = 74 % | 80/95 = 84 % ✅ | 1 sur 17 |
-| FD2 | ≤ 0,10 | 0,20 ❌ | 0,08 ✅ | 1364 |
+| R | ≥ 70 % | 70/95 = 74 % | 80/95 = 84 % ✅ | 37/46 = 80 % ✅ |
+| FD2 | ≤ 0,10 | 0,20 ❌ | 0,08 ✅ | 0,12 ❌ |
 | FD1 placebos | ≤ 10 % | 1/34 | 1/34 ✅ | — |
 | P médian | ≤ 2 % | 3,8 % ❌ | 3,8 % ❌ (inchangé) | — |
 
-Les autres métriques sont inchangées. Restent hors seuil : le profit (P), et sur données réalistes S et L. Les cinq
+Les autres métriques sont inchangées. Restent hors seuil : le profit (P), et sur données réalistes S, L et encore FD2 (0,12). Les cinq
 fausses détections restantes viennent des décomptes de l'abonnement (4) et d'un début estimé 23 jours trop tôt (1).
 Réserve : ces règles sont mises au point sur les graines de développement ; seul le test dira si elles tiennent.
 Test de non-régression ajouté (`test/bilan.test.js`, graine 21). Rien n'est gelé ; les seuils sont inchangés.
