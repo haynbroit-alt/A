@@ -2,7 +2,7 @@
 // Entrée : les seules données observées. Sortie : la déclaration de corps (format de src/bench/evaluate.js).
 import { inferTypes, adoptCounterpartType } from './types.js';
 import { inferLinks } from './links.js';
-import { inferStocks } from './stocks.js';
+import { inferStocks, retirerManques } from './stocks.js';
 import { inferEcarts } from './ecarts.js';
 import { estimateDates, imputeCensored } from './dates.js';
 
@@ -19,6 +19,7 @@ export function bilan(observed) {
   const dated = { ...observed, journal: [...journal.map((r) => ({ ...r, jour: day.get(r.id) })), ...est] };
   const S = inferStocks(dated, typeOf, links, dup, rules);
   const ecarts = inferEcarts(dated, S, typeOf, links, dup);
+  retirerManques(S, dated.jours);
   const records = {};
   for (const r of journal) records[r.id] = { type: typeOf.get(r.id), links: [...links.get(r.id)], deltas: S.deltas.get(r.id) };
   return {
