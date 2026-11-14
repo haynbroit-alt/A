@@ -479,6 +479,25 @@ atteint. Rien n'est gelé.
     bougent. Travail préparé sur une copie privée, graines 1 à 100 seulement ; résultat ci-dessous après
     vérification sur le dépôt.
 
+    **Résultat, vérifié sur ce dépôt** (`npm run bench:dev`, `bench/DEV_M0_BILAN.md`) : P médian 2,89 % → **2,27 %**,
+    égal à l'oracle ; service 0,85 → 0,49 % ; S médian 1,09 → 0,68 % ; F équilibré 0,944, L 0,856, G 0,941, R 80/95,
+    FD1 1/34, FD2 0,09 : inchangés. Abonnement (4,08 %) et négoce (5,53 %) ne bougent pas, comme attendu.
+    **Le seuil de 2 % n'est pas atteint.** Sur le seul désordre réaliste, P reste à 5,1 % : c'est la condition du
+    test, et rien ici ne la touche. Test de non-régression ajouté (graine de développement 14).
+
+13. **Trois essais sur le mécanisme B, non retenus (14 novembre 2026).** Mesurés sur la copie privée seulement,
+    non refaits sur ce dépôt. Un oracle « vraies dates » ramène le négoce de 5,53 % à 1,03 % : le mécanisme B reste
+    l'essentiel de l'erreur. Essais : (a) abaisser de 3 jours à 1 le seuil à partir duquel une pièce est redatée par
+    le délai de son solde ; (b) de deux pièces identiques, tenir pour copie celle qu'aucune pièce d'une autre source
+    ne cite ; (c) ramener au jour d'un relevé mensuel une pièce saisie juste après et dont la quantité explique
+    l'écart. Ensemble : P médian 1,48 % sur les 100 graines, R 78/95, FD2 0,09. **Écartés, pour trois raisons** :
+    le gain porte presque entièrement sur le désordre propre (1,9 → 0,5 %) et pas sur le réaliste (5,1 → 5,0 %),
+    seule condition du test ; (a) seul franchit deux garde-fous (FD1 2/34, FD2 0,106) et ne tient qu'avec (b) et
+    (c) ; (c) a été conçu en regardant une seule graine et masque de petites pertes réelles (trois détections justes
+    perdues, une gagnée). Passer sous 2 % sur le lot de développement par ce chemin aurait été un seuil franchi sans
+    que le moteur soit meilleur là où il sera jugé. Reste à faire : redater les pièces du désordre réaliste, dont
+    le solde est regroupé ou fractionné, et celles qui n'ont aucun ancrage exact.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis

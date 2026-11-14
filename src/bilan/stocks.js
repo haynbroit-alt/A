@@ -278,9 +278,25 @@ export function inferStocks(observed, typeOf, links, dup, rules = []) {
   }
   for (const st of stocks) if (st.kind === 'item') { const a = cost.get(st.objet); st.na = a && a[1] ? a[0] / a[1] : 0; }
 
-  // ---- profit mensuel : variation de l'actif net, hors financement ----
+  const profit = profitOf(stocks, D);
+  return { stocks, deltas, profit, cash, isBank, coef, manques: [] };
+}
+
+// ---- profit mensuel : variation de l'actif net, hors financement ----
+export function profitOf(stocks, D) {
   const na = (d) => stocks.reduce((s, st) => s + st.na * (d < 0 ? st.series[0] - st.daily[0] : st.series[d]), 0);
   const ends = Array.from({ length: 12 }, (_, m) => { let d = D - 1; while (monthOf(d, D) > m) d--; return d; });
-  const profit = ends.map((d, m) => na(d) - na(m === 0 ? -1 : ends[m - 1]));
-  return { stocks, deltas, profit, cash, isBank, coef };
+  return ends.map((d, m) => na(d) - na(m === 0 ? -1 : ends[m - 1]));
+}
+
+// Un écart déclaré sur un stock en cours dit qu'une part de ses opérations ne sera jamais soldée : la laisser dans
+// le stock compterait comme actif ce qui a disparu. Elle en sort au jour du solde ; le profit est recalculé.
+export function retirerManques(S, D) {
+  if (!S.manques.length) return;
+  const byId = new Map(S.stocks.map((st) => [st.id, st]));
+  for (const { stock, jour, montant } of S.manques) {
+    const st = byId.get(stock);
+    for (let d = jour; d < D; d++) st.series[d] -= montant;
+  }
+  S.profit = profitOf(S.stocks, D);
 }

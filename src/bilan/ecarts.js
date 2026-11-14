@@ -110,6 +110,8 @@ export function inferEcarts(observed, S, typeOf, links, dup) {
       const tau = j > 0 ? Math.round((gs[j - 1].payDay + gs[j].payDay) / 2) : gs[j].payDay;
       const manque = idx.reduce((s, i) => s + (ok(i) ? gs[i].inv - gs[i].paid : (gs[i].paid * (1 - rho)) / rho), 0);
       ecarts.push({ stock: st.id, debut: tau, debit: manque / (D - tau), preuve: `${nOk} opérations soldées à ${(100 * rho).toFixed(1)} %` });
+      // la part non soldée des opérations du régime ne reviendra pas : elle sort du stock en cours au jour du solde
+      for (const i of idx) if (ok(i)) S.manques.push({ stock: st.id, jour: gs[i].payDay, montant: gs[i].inv - gs[i].paid });
     }
   }
   return ecarts;

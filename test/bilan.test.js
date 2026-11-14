@@ -48,3 +48,10 @@ test('le début d’un écart sur un stock en cours résiste à quelques soldes 
   assert.ok(Math.abs(e.debit - h.debit) <= 0.5 * h.debit, `débit ${e.debit} contre ${h.debit}`);
   assert.equal(evaluate(truth, pred).FD, 0);
 });
+
+// Graine de développement 14 : un stock en cours soldé à taux constant < 1 ; la part non soldée sort de l'actif net.
+test('le manque d\'un écart déclaré sur un stock en cours est retiré du profit', () => {
+  const { observed, truth } = generate(14, devClass(14));
+  const m = evaluate(truth, bilan(observed));
+  assert.ok(m.hiddenFound >= 1 && m.P < 0.02, JSON.stringify({ P: m.P, R: m.hiddenFound }));
+});
