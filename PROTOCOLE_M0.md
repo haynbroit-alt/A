@@ -424,6 +424,42 @@ Quatorze graines sur cent changent ; hors la graine 1, les écarts sont inférie
 FD2 sont inchangés. Ce correctif retire un cas extrême, il ne rapproche pas le profit médian de son seuil : la cause
 de l'erreur médiane reste à trouver. Test de non-régression ajouté (`test/bilan.test.js`, graine 1). Rien n'est gelé.
 
+11. **Décomposition de l'erreur de profit et premier correctif (14 novembre 2026).** L'écart de profit a été
+décomposé enregistrement par enregistrement sur les 100 graines de développement (recomposition exacte). Il n'a pas
+une cause unique mais trois, dont la part dépend de la classe :
+
+| Mécanisme | Classe où il domine | P médian si ce seul mécanisme était exact |
+|---|---|---:|
+| A. Enregistrements au libellé brouillé, ou isolés dans un type minuscule : reliés à aucun stock en cours, ils sortent de l'actif net | abonnement | 3,75 % → 2,27 % |
+| B. Pièces comptées dans le mauvais mois (jour estimé ≠ jour réel) | négoce | 3,75 % → 1,97 % |
+| C. Écarts cachés détectés mais non retirés du profit | service | mesuré hors code : 3,75 % → 2,90 % |
+
+Ces parts se compensent en partie et ne s'additionnent pas.
+
+Règle ajoutée pour A (`adoptCounterpartType`, `src/bilan/types.js`) : après l'apprentissage des liens, un tel
+enregistrement prend le type que portent nettement (75 % et au moins 2) les autres enregistrements de sa
+contrepartie dans le même groupe de forme. Les règles de liens restent apprises sur les types d'origine : une
+première variante, appliquée avant, faisait apprendre des règles sur trop peu de références (graine 88 : L 0,999 →
+0,198) et a été rejetée.
+
+| | Seuil | Avant | Après |
+|---|---|---:|---:|
+| P médian | ≤ 2 % | 3,75 % ❌ | 2,89 % ❌ |
+| S médian | ≤ 2 % | 1,58 % ✅ | 1,09 % ✅ |
+| F équilibré | ≥ 0,90 | 0,934 ✅ | 0,944 ✅ |
+| G | ≥ 0,85 | 0,943 ✅ | 0,941 ✅ |
+| L | ≥ 0,85 | 0,856 ✅ | 0,856 ✅ |
+| R | ≥ 70 % | 80/95 ✅ | 80/95 ✅ |
+
+Par classe, P médian : abonnement 4,3 % → 4,1 % ; service 1,6 % → 0,9 % ; négoce 5,6 % → 5,5 %. 29 graines gagnent
+plus de 0,005 de P ; 2 en perdent autant (66 et 91). G baisse de plus de 0,01 sur 10 graines : la règle confond
+deux types de même forme et de même contrepartie (53 réaffectations fausses sur 234). Les seuils 3 et 75 % n'ont
+été essayés qu'une fois. Mesures faites deux fois, par l'enquête sur copie privée puis sur ce dépôt : identiques.
+
+Reste à faire, non écrit : retirer du profit les écarts déclarés (C) ; mieux dater les réceptions (B), dont une part
+en données propres tient à un retard de saisie d'un jour sans régularité exploitable. Le seuil de profit n'est pas
+atteint. Rien n'est gelé.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
