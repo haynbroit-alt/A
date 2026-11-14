@@ -401,6 +401,29 @@ Test de non-régression ajouté (`test/bilan.test.js`, graine 21). Rien n'est ge
 principale qui réunit les deux (`bench/DEV_M0_BILAN.md`) : FD2 0,09 sur toutes les graines et 0,15 sur données
 réalistes seules ; R 80/95 et 37/46 ; G 0,939 ; P médian 3,8 %. Le tableau ci-dessus reste celui de la branche seule.
 
+10. **Groupe lié mêlant deux sens (14 novembre 2026).** Sur la graine de développement 1, l'erreur de profit
+atteignait 178 % : un seul stock en cours réunissait des pièces soldées par des entrées d'argent et des pièces
+soldées par des sorties, et l'étiquette unique, au sens majoritaire, comptait les premières avec le mauvais signe
+dans l'actif net. Règle ajoutée dans `src/bilan/stocks.js` : le sens d'un type de pièces se lit sur les seules
+lignes du compte relevé réellement liées à ses pièces ; un groupe n'est scindé en deux stocks que si ses types
+divergent, et chaque ligne du compte relevé suit alors les pièces auxquelles elle est liée. Un groupe homogène est
+traité exactement comme avant.
+
+Une première version, qui scindait tout groupe selon le signe de chaque ligne du compte relevé, a été mesurée puis
+retirée : elle réparait la graine 1 mais détachait des lignes de sens contraire appartenant au même stock sur 30
+autres graines (G moyen 0,939 → 0,898), sans rien gagner sur le profit.
+
+| | Seuil | Avant | Après |
+|---|---|---:|---:|
+| Graine 1 : P | — | 178 % | 42 % |
+| Graine 1 : G | — | 0,36 | 0,76 |
+| G moyen (100 graines) | — | 0,939 | 0,943 |
+| P médian (100 graines) | ≤ 2 % | 3,8 % ❌ | 3,8 % ❌ (inchangé) |
+
+Quatorze graines sur cent changent ; hors la graine 1, les écarts sont inférieurs au millième. F, L, S, R, FD1 et
+FD2 sont inchangés. Ce correctif retire un cas extrême, il ne rapproche pas le profit médian de son seuil : la cause
+de l'erreur médiane reste à trouver. Test de non-régression ajouté (`test/bilan.test.js`, graine 1). Rien n'est gelé.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis

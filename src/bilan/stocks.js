@@ -168,9 +168,30 @@ export function inferStocks(observed, typeOf, links, dup, rules = []) {
   let ci = 0;
   for (const ts of comps.values()) {
     const bankRecs = ts.filter((t) => bankT.includes(t)).flatMap((t) => recsOf.get(t));
-    const inflow = bankRecs.reduce((s, r) => s + r.montant, 0) > 0;
-    const st = add({ id: `en-cours:${ci++}`, unit: UNITS.money, na: inflow ? 1 : -1, kind: inflow ? 'receivable' : 'payable' });
-    for (const t of ts) for (const r of recsOf.get(t)) put(r, st, isBank(r) ? (inflow ? -r.montant : r.montant) : Math.abs(r.montant));
+    const majDir = bankRecs.reduce((s, r) => s + r.montant, 0) > 0 ? 1 : -1;
+    // Un groupe lié peut mêler des pièces soldées par des entrées d'argent et d'autres par des sorties : une seule
+    // étiquette au sens majoritaire compte alors les premières avec le mauvais signe dans l'actif net. Le sens d'un
+    // type de pièces se lit sur les seules lignes de compte relevé réellement liées à ses pièces ; le groupe n'est
+    // scindé que si ses types divergent, et une ligne de compte relevé suit alors les pièces auxquelles elle est liée.
+    const sensLie = (t) => {
+      const vus = new Set(); let s = 0;
+      for (const r of recsOf.get(t)) for (const x of links.get(r.id)) { const o = byId.get(x); if (o && !vus.has(x) && isBank(o)) { vus.add(x); s += o.montant; } }
+      return Math.sign(s) || majDir;
+    };
+    const sens = new Map(ts.filter((t) => !bankT.includes(t)).map((t) => [t, sensLie(t)]));
+    const mixte = new Set(sens.values()).size > 1;
+    const cote = (r) => {
+      if (!mixte) return majDir;
+      let s = 0;
+      for (const x of links.get(r.id)) { const o = byId.get(x); if (o && sens.has(T(o))) s += sens.get(T(o)); }
+      return Math.sign(s) || Math.sign(r.montant) || majDir;
+    };
+    for (const dir of mixte ? [1, -1] : [majDir]) {
+      const inflow = dir > 0;
+      const st = add({ id: `en-cours:${ci++}`, unit: UNITS.money, na: inflow ? 1 : -1, kind: inflow ? 'receivable' : 'payable' });
+      for (const [t, d] of sens) if (d === dir) for (const r of recsOf.get(t)) put(r, st, Math.abs(r.montant));
+      for (const r of bankRecs) if (cote(r) === dir) put(r, st, inflow ? -r.montant : r.montant);
+    }
   }
   // quantités en cours : un type à quantité sans montant, agrégé dans un type à quantité et montant, hors stocks relevés
   let hi = 0;

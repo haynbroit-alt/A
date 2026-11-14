@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { generate } from '../src/bench/generator.js';
+import { devClass } from '../src/bench/classes.js';
 import { evaluate } from '../src/bench/evaluate.js';
 import { bilan } from '../src/bilan/index.js';
 
@@ -22,6 +23,12 @@ test('le bilan produit une déclaration de corps évaluable, meilleure que le ha
   const m = evaluate(truth, bilan(observed));
   assert.ok(m.Fmacro > 0.8 && m.L > 0.8 && m.G > 0.8, JSON.stringify(m));
   assert.ok(m.S < 0.05 && m.P < 0.1);
+});
+
+test('un groupe lié qui mêle deux sens est scindé : les pièces soldées par des entrées ne comptent pas en dette', () => {
+  const { observed, truth } = generate(1, devClass(1));
+  const m = evaluate(truth, bilan(observed));
+  assert.ok(m.P < 0.6 && m.G > 0.6, JSON.stringify({ P: m.P, G: m.G }));
 });
 
 test('le bilan retrouve des frais non enregistrés sur un compte relevé chaque jour', () => {
