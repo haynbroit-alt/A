@@ -374,6 +374,29 @@ Le profit (P) passe de 15,5 % à 3,8 % et les stocks (S) de 2,4 % à 1,6 %. Sur 
 échoueraient encore ; le négoce porte l'essentiel de l'erreur sur les stocks et le profit (7,6 % et 6,5 %), et
 l'abonnement celle de l'appariement (0,77) et des fausses détections. Rien n'est gelé ; les seuils sont inchangés.
 
+**9. Début des écarts sur un stock en cours** (développement, non gelé). Diagnostic sur les 100 graines : 9 des
+14 fausses détections étaient de vrais flux cachés, trouvés avec un début beaucoup trop tardif (jusqu'à 200 jours),
+donc comptés à la fois comme fausse détection et comme flux manqué. Cause : la suite finale de soldes au même taux
+s'arrêtait au premier solde isolé à un autre taux (pièce mal appariée, erreur de saisie). Corrections dans
+`ecarts.js`, sans connaissance de métier :
+- le taux retenu est le plus fréquent parmi les soldes partiels, et il doit encore tenir dans les trois derniers ;
+- en remontant le temps, un solde isolé à un autre taux est toléré ; deux de suite marquent le régime d'avant ;
+- le début est placé au milieu entre le dernier solde de l'ancien régime et le premier du nouveau (pour un payeur
+  mensuel, le premier solde réduit arrive jusqu'à un mois après le changement) ;
+- le manque des soldes isolés est estimé au taux retenu.
+
+| | Seuil | Avant | Après (toutes graines) | Après (réaliste seul) |
+|---|---|---:|---:|---:|
+| R | ≥ 70 % | 70/95 = 74 % | 80/95 = 84 % ✅ | 1 sur 17 |
+| FD2 | ≤ 0,10 | 0,20 ❌ | 0,08 ✅ | 1364 |
+| FD1 placebos | ≤ 10 % | 1/34 | 1/34 ✅ | — |
+| P médian | ≤ 2 % | 3,8 % ❌ | 3,8 % ❌ (inchangé) | — |
+
+Les autres métriques sont inchangées. Restent hors seuil : le profit (P), et sur données réalistes S et L. Les cinq
+fausses détections restantes viennent des décomptes de l'abonnement (4) et d'un début estimé 23 jours trop tôt (1).
+Réserve : ces règles sont mises au point sur les graines de développement ; seul le test dira si elles tiennent.
+Test de non-régression ajouté (`test/bilan.test.js`, graine 21). Rien n'est gelé ; les seuils sont inchangés.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis

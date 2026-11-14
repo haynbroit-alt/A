@@ -9,7 +9,7 @@ Conception : [CONCEPTION.md](CONCEPTION.md). Premier jalon : [PROTOCOLE_M0.md](P
 Le banc d'essai de M0 est écrit : générateur d'entreprises opaques, évaluateur, méthode de référence naïve. Une première version du bilan de matière (`src/bilan/`) est en développement ; elle n'est pas gelée. Résultats de développement : [bench/DEV_M0_BILAN.md](bench/DEV_M0_BILAN.md).
 
 ```bash
-npm test                                                   # 17 tests (banc et bilan)
+npm test                                                   # 18 tests (banc et bilan)
 node src/bench/run.js --seeds 1-100 --methods naive,bilan,parfait  # graines de développement
 ```
 

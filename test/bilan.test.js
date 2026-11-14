@@ -29,3 +29,15 @@ test('le bilan retrouve des frais non enregistrés sur un compte relevé chaque 
   const m = evaluate(truth, bilan(observed));
   assert.ok(m.hiddenFound >= 1);
 });
+
+// Graine de développement 21 : un flux caché sur un stock en cours, avec quelques soldes isolés à un autre taux.
+// Avant la correction du § 9, point 9, le début était estimé 200 jours trop tard.
+test('le début d’un écart sur un stock en cours résiste à quelques soldes isolés', () => {
+  const { observed, truth } = generate(21, { archetype: 'negoce', nHidden: 1, level: 'realiste' });
+  const pred = bilan(structuredClone(observed));
+  const h = truth.hidden[0], e = pred.ecarts.find((x) => x.stock.startsWith('en-cours'));
+  assert.ok(e, 'écart déclaré');
+  assert.ok(Math.abs(e.debut - h.debut) <= 21, `début ${e.debut} contre ${h.debut}`);
+  assert.ok(Math.abs(e.debit - h.debit) <= 0.5 * h.debit, `débit ${e.debit} contre ${h.debit}`);
+  assert.equal(evaluate(truth, pred).FD, 0);
+});
