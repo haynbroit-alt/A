@@ -401,6 +401,65 @@ Test de non-régression ajouté (`test/bilan.test.js`, graine 21). Rien n'est ge
 principale qui réunit les deux (`bench/DEV_M0_BILAN.md`) : FD2 0,09 sur toutes les graines et 0,15 sur données
 réalistes seules ; R 80/95 et 37/46 ; G 0,939 ; P médian 3,8 %. Le tableau ci-dessus reste celui de la branche seule.
 
+10. **Groupe lié mêlant deux sens (14 novembre 2026).** Sur la graine de développement 1, l'erreur de profit
+atteignait 178 % : un seul stock en cours réunissait des pièces soldées par des entrées d'argent et des pièces
+soldées par des sorties, et l'étiquette unique, au sens majoritaire, comptait les premières avec le mauvais signe
+dans l'actif net. Règle ajoutée dans `src/bilan/stocks.js` : le sens d'un type de pièces se lit sur les seules
+lignes du compte relevé réellement liées à ses pièces ; un groupe n'est scindé en deux stocks que si ses types
+divergent, et chaque ligne du compte relevé suit alors les pièces auxquelles elle est liée. Un groupe homogène est
+traité exactement comme avant.
+
+Une première version, qui scindait tout groupe selon le signe de chaque ligne du compte relevé, a été mesurée puis
+retirée : elle réparait la graine 1 mais détachait des lignes de sens contraire appartenant au même stock sur 30
+autres graines (G moyen 0,939 → 0,898), sans rien gagner sur le profit.
+
+| | Seuil | Avant | Après |
+|---|---|---:|---:|
+| Graine 1 : P | — | 178 % | 42 % |
+| Graine 1 : G | — | 0,36 | 0,76 |
+| G moyen (100 graines) | — | 0,939 | 0,943 |
+| P médian (100 graines) | ≤ 2 % | 3,8 % ❌ | 3,8 % ❌ (inchangé) |
+
+Quatorze graines sur cent changent ; hors la graine 1, les écarts sont inférieurs au millième. F, L, S, R, FD1 et
+FD2 sont inchangés. Ce correctif retire un cas extrême, il ne rapproche pas le profit médian de son seuil : la cause
+de l'erreur médiane reste à trouver. Test de non-régression ajouté (`test/bilan.test.js`, graine 1). Rien n'est gelé.
+
+11. **Décomposition de l'erreur de profit et premier correctif (14 novembre 2026).** L'écart de profit a été
+décomposé enregistrement par enregistrement sur les 100 graines de développement (recomposition exacte). Il n'a pas
+une cause unique mais trois, dont la part dépend de la classe :
+
+| Mécanisme | Classe où il domine | P médian si ce seul mécanisme était exact |
+|---|---|---:|
+| A. Enregistrements au libellé brouillé, ou isolés dans un type minuscule : reliés à aucun stock en cours, ils sortent de l'actif net | abonnement | 3,75 % → 2,27 % |
+| B. Pièces comptées dans le mauvais mois (jour estimé ≠ jour réel) | négoce | 3,75 % → 1,97 % |
+| C. Écarts cachés détectés mais non retirés du profit | service | mesuré hors code : 3,75 % → 2,90 % |
+
+Ces parts se compensent en partie et ne s'additionnent pas.
+
+Règle ajoutée pour A (`adoptCounterpartType`, `src/bilan/types.js`) : après l'apprentissage des liens, un tel
+enregistrement prend le type que portent nettement (75 % et au moins 2) les autres enregistrements de sa
+contrepartie dans le même groupe de forme. Les règles de liens restent apprises sur les types d'origine : une
+première variante, appliquée avant, faisait apprendre des règles sur trop peu de références (graine 88 : L 0,999 →
+0,198) et a été rejetée.
+
+| | Seuil | Avant | Après |
+|---|---|---:|---:|
+| P médian | ≤ 2 % | 3,75 % ❌ | 2,89 % ❌ |
+| S médian | ≤ 2 % | 1,58 % ✅ | 1,09 % ✅ |
+| F équilibré | ≥ 0,90 | 0,934 ✅ | 0,944 ✅ |
+| G | ≥ 0,85 | 0,943 ✅ | 0,941 ✅ |
+| L | ≥ 0,85 | 0,856 ✅ | 0,856 ✅ |
+| R | ≥ 70 % | 80/95 ✅ | 80/95 ✅ |
+
+Par classe, P médian : abonnement 4,3 % → 4,1 % ; service 1,6 % → 0,9 % ; négoce 5,6 % → 5,5 %. 29 graines gagnent
+plus de 0,005 de P ; 2 en perdent autant (66 et 91). G baisse de plus de 0,01 sur 10 graines : la règle confond
+deux types de même forme et de même contrepartie (53 réaffectations fausses sur 234). Les seuils 3 et 75 % n'ont
+été essayés qu'une fois. Mesures faites deux fois, par l'enquête sur copie privée puis sur ce dépôt : identiques.
+
+Reste à faire, non écrit : retirer du profit les écarts déclarés (C) ; mieux dater les réceptions (B), dont une part
+en données propres tient à un retard de saisie d'un jour sans régularité exploitable. Le seuil de profit n'est pas
+atteint. Rien n'est gelé.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
