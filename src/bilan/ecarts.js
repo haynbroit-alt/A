@@ -49,7 +49,7 @@ export function inferEcarts(observed, S, typeOf, links, dup) {
   }
   // ---- 2. stocks relevés chaque mois ----
   for (const st of S.stocks.filter((x) => x.releveM)) {
-    const t = st.releveM.map((x) => x.jour), e = st.releveM.map((x) => x.valeur - (st.series[x.jour] - st.offset));
+    const t = st.releveM.map((x) => x.jour), e = st.releveM.map((x) => x.valeur - st.raw[x.jour]);
     const f = fitLoss(t, e);
     if (f.tau == null || f.rss <= 0) continue;
     const lr = f.n * Math.log(f.rss0 / f.rss), lrStep = f.n * Math.log(f.step / f.rss);
