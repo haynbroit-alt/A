@@ -88,23 +88,28 @@ export function inferEcarts(observed, S, typeOf, links, dup) {
     for (const gs of byCp.values()) {
       gs.sort((a, b) => a.payDay - b.payDay);
       const ratio = gs.map((g) => g.paid / g.inv);
-      // taux ρ < 1 des derniers soldes, puis le début le plus ancien à partir duquel au moins 80 % des soldes ont ce
-      // taux (à 0,5 % près) : un solde isolé hors norme (solde fractionné ou regroupé) n'interrompt pas la suite
-      const tail = ratio.filter((x) => x > 0.69 && x < 0.998).slice(-3);
-      if (tail.length < 3) continue;
-      const rho = [...tail].sort((a, b) => a - b)[1];
-      if (tail.some((x) => Math.abs(x - rho) >= 0.005)) continue;
-      const same = ratio.map((x) => Math.abs(x - rho) < 0.005);
-      let start = -1;
-      for (let i = 0; i < gs.length; i++) {
-        if (!same[i]) continue;
-        const rest = same.slice(i);
-        if (rest.filter(Boolean).length >= 3 && rest.filter(Boolean).length >= 0.8 * rest.length) { start = i; break; }
-      }
-      if (start < 0) continue;
-      const run = gs.slice(start).filter((g, k) => same[start + k]);
-      const tau = run[0].payDay;
-      ecarts.push({ stock: st.id, debut: tau, debit: run.reduce((s, g) => s + g.inv - g.paid, 0) / (D - tau), preuve: `${run.length} opérations soldées à ${(100 * rho).toFixed(1)} %` });
+      // taux de solde ρ < 1 le plus fréquent (à 0,5 % près) ; il doit encore tenir à la fin
+      const cand = ratio.filter((x) => x > 0.69 && x < 0.998);
+      if (cand.length < 3) continue;
+      const bins = new Map();
+      for (const x of cand) { const q = Math.round(x * 200); bins.set(q, (bins.get(q) ?? 0) + 1); }
+      const rho0 = [...bins].sort((u, v) => v[1] - u[1])[0][0] / 200;
+      const near = cand.filter((x) => Math.abs(x - rho0) < 0.005), rho = near.reduce((s, x) => s + x, 0) / near.length;
+      const ok = (i) => Math.abs(ratio[i] - rho) < 0.005;
+      let k = gs.length - 1;
+      while (k >= 0 && !ok(k)) k--;
+      if (k < 0 || gs.length - 1 - k > 2) continue;
+      // on remonte le temps en tolérant un solde isolé à un autre taux (pièce mal appariée, erreur de saisie) ;
+      // deux soldes de suite à un autre taux marquent le régime d'avant
+      let j = k, miss = 0;
+      for (let i = k - 1; i >= 0; i--) { if (ok(i)) { j = i; miss = 0; } else if (++miss >= 2) break; }
+      const idx = []; for (let i = j; i <= k; i++) idx.push(i);
+      const nOk = idx.filter(ok).length;
+      if (nOk < 3) continue;
+      // le changement a eu lieu entre le dernier solde de l'ancien régime et le premier du nouveau : on prend le milieu
+      const tau = j > 0 ? Math.round((gs[j - 1].payDay + gs[j].payDay) / 2) : gs[j].payDay;
+      const manque = idx.reduce((s, i) => s + (ok(i) ? gs[i].inv - gs[i].paid : (gs[i].paid * (1 - rho)) / rho), 0);
+      ecarts.push({ stock: st.id, debut: tau, debit: manque / (D - tau), preuve: `${nOk} opérations soldées à ${(100 * rho).toFixed(1)} %` });
     }
   }
   return ecarts;

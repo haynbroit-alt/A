@@ -374,29 +374,28 @@ Le profit (P) passe de 15,5 % à 3,8 % et les stocks (S) de 2,4 % à 1,6 %. Sur 
 échoueraient encore ; le négoce porte l'essentiel de l'erreur sur les stocks et le profit (7,6 % et 6,5 %), et
 l'abonnement celle de l'appariement (0,77) et des fausses détections. Rien n'est gelé ; les seuils sont inchangés.
 
-**9. Intervalles stables et début des remises** (développement, non gelé).
-- Un mouvement de trésorerie, daté exactement, suit sa pièce d'un délai propre à chaque contrepartie. Ce délai est
-  estimé (90ᵉ centile des écarts observés), puis la date de la pièce est ramenée à l'intersection de ce que disent
-  les deux pièces. La même règle entre deux pièces saisies à la main a été essayée puis restreinte aux paires datées
-  exactement : sur données propres, l'écart entre une intention et son exécution varie pour des raisons propres à
-  l'opération et dégradait le profit (2,5 % → 4,0 % de médiane sur les graines propres 2 à 40).
-- Début d'un solde à taux constant inférieur à 1 : le plus ancien à partir duquel 80 % des soldes ont ce taux ; un
-  solde isolé hors norme n'interrompt plus la suite (les remises étaient déclarées trop tard, donc fausses).
-- Essayé puis retiré : caler la série d'un stock sur chacun de ses relevés mensuels (S réaliste 8,8 % → 9,4 %).
+**9. Début des écarts sur un stock en cours** (développement, non gelé). Diagnostic sur les 100 graines : 9 des
+14 fausses détections étaient de vrais flux cachés, trouvés avec un début beaucoup trop tardif (jusqu'à 200 jours),
+donc comptés à la fois comme fausse détection et comme flux manqué. Cause : la suite finale de soldes au même taux
+s'arrêtait au premier solde isolé à un autre taux (pièce mal appariée, erreur de saisie). Corrections dans
+`ecarts.js`, sans connaissance de métier :
+- le taux retenu est le plus fréquent parmi les soldes partiels, et il doit encore tenir dans les trois derniers ;
+- en remontant le temps, un solde isolé à un autre taux est toléré ; deux de suite marquent le régime d'avant ;
+- le début est placé au milieu entre le dernier solde de l'ancien régime et le premier du nouveau (pour un payeur
+  mensuel, le premier solde réduit arrive jusqu'à un mois après le changement) ;
+- le manque des soldes isolés est estimé au taux retenu.
 
-| | Seuil | Toutes graines | Réaliste seul (comme au test) |
-|---|---|---:|---:|
-| F équilibré | ≥ 0,90 et > naïf | 0,934 (+0,244 ± 0,017) ✅ | 0,923 ✅ |
-| L | ≥ 0,85 et > naïf | 0,856 (+0,534 ± 0,100) ✅ | 0,824 ❌ |
-| G | ≥ 0,85 | 0,939 ✅ | 0,894 ✅ |
-| S médian | ≤ 2 % | 1,6 % ✅ | 5,6 % ❌ |
-| P médian | ≤ 2 % | 3,8 % ❌ | 5,3 % ❌ |
-| R | ≥ 70 % | 77/95 = 81 % ✅ | 36/46 = 78 % ✅ |
-| FD1 placebos | ≤ 10 % | 1/34 ✅ | 1/17 ✅ |
-| FD2 | ≤ 0,10 | 0,14 ❌ | 0,18 ❌ |
+| | Seuil | Avant | Après (toutes graines) | Après (réaliste seul) |
+|---|---|---:|---:|---:|
+| R | ≥ 70 % | 70/95 = 74 % | 80/95 = 84 % ✅ | 37/46 = 80 % ✅ |
+| FD2 | ≤ 0,10 | 0,20 ❌ | 0,08 ✅ | 0,12 ❌ |
+| FD1 placebos | ≤ 10 % | 1/34 | 1/34 ✅ | — |
+| P médian | ≤ 2 % | 3,8 % ❌ | 3,8 % ❌ (inchangé) | — |
 
-Sur données réalistes, quatre critères tiennent, quatre échouent encore : appariement (abonnement), stocks et
-profit (négoce surtout), fausses détections (décomptes de contrats). Rien n'est gelé ; les seuils sont inchangés.
+Les autres métriques sont inchangées. Restent hors seuil : le profit (P), et sur données réalistes S, L et encore FD2 (0,12). Les cinq
+fausses détections restantes viennent des décomptes de l'abonnement (4) et d'un début estimé 23 jours trop tôt (1).
+Réserve : ces règles sont mises au point sur les graines de développement ; seul le test dira si elles tiennent.
+Test de non-régression ajouté (`test/bilan.test.js`, graine 21). Rien n'est gelé ; les seuils sont inchangés.
 
 ## 10. Exécution du test
 
