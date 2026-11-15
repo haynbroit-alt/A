@@ -582,6 +582,96 @@ atteint. Rien n'est gelé.
     mesurer. D'où vient la petite dérive résiduelle elle-même (déplacements erronés de l'étape 4, ou autre) n'est
     pas établi. La graine 39 est d'une autre nature : une fausse détection sur un stock en cours.
 
+15. **Doublons : une répétition qui est la règle n'est pas une copie (15 novembre 2026).** Ordre réel des faits,
+    pour ne pas le maquiller : la règle a d'abord été essayée dans l'arbre de travail, sur les graines de
+    développement, puis décrite ici ; ce texte et le code sont poussés ensemble, après la mesure.
+
+    *Cause première des fausses détections du point 14.* Sur la graine 72 (placebo, désordre propre), la série
+    « relevé − reconstitué » d'un stock d'objets descend par marches de 16, 15 puis 9 unités : ce sont exactement
+    des pièces légitimes, identiques à celle de la veille pour la même contrepartie, que l'étape des doublons
+    retirait. Deux hypothèses avancées en route ont été réfutées par la mesure : la censure de fin d'année, puis un
+    défaut de typage (aucune pièce qui bouge un stock n'a une incidence nulle sur ces graines).
+
+    *Mesure de l'étape des doublons, 100 graines.* Sur les 50 graines propres, où il n'existe aucun doublon : 1 997
+    pièces déclarées doublons, toutes à tort (1 941 sont des relevés d'heures identiques d'un jour sur l'autre).
+    Sur les 50 réalistes : 9 629 déclarées, dont 3 930 ne sont pas la copie désignée par la vérité, pour 8 195
+    copies présentes et 5 699 retrouvées. Réserve : une part de ces « fausses » est la bonne paire avec le mauvais
+    membre désigné, ce qui revient au même pour les stocks.
+
+    *Règle* (`src/bilan/links.js`). Une pièce identique à la précédente, à un jour près, n'est une copie que si
+    elle arrive plus tôt que le rythme habituel de ce type pour cette contrepartie : le même jour, seulement s'il
+    n'en vient d'ordinaire qu'une par jour ; le lendemain, seulement si ce type ne revient pas d'ordinaire d'un jour
+    sur l'autre. « D'ordinaire » est une médiane sur les jours où la contrepartie a de telles pièces ; avec moins de
+    quatre jours, le repère est la médiane des autres contreparties du même type. Second indice : une pièce citée
+    en référence par une pièce d'une autre source n'est pas une copie ; deux pièces citées toutes deux sont deux
+    pièces, et des deux la copie est celle qui n'est pas citée. Justification : un doublon est un accident de
+    saisie, pas un rythme ; et seule l'originale est citée par la pièce qui la solde.
+
+    *Résultat, vérifié sur ce dépôt* (`npm run bench:dev`, `bench/DEV_M0_BILAN.md`) :
+
+    | | Avant | Après |
+    |---|---:|---:|
+    | Doublons déclarés à tort, graines propres | 1 997 | 744 |
+    | Désordre réaliste : déclarés hors copie désignée / copies retrouvées sur 8 195 | 3 930 / 5 699 | 1 835 / 6 448 |
+    | P médian, tout | 2,27 % | **2,14 %** |
+    | P médian, désordre réaliste | 5,08 % | 4,97 % |
+    | S médian · F équilibré · L · G | 0,68 % · 0,944 · 0,856 · 0,941 | inchangés |
+    | R · FD1 · FD2 | 80/95 · 1/34 · 0,09 | inchangés |
+
+    Aucun garde-fou n'est touché. Le seuil de 2 % sur P n'est pas atteint. Il reste 744 faux doublons en désordre
+    propre (surtout des relevés d'heures au rythme irrégulier). Suite en cours : remesurer le point 14 par-dessus
+    cette règle, pour savoir si les fausses détections venaient bien de là.
+
+    **Point 14 remesuré par-dessus cette règle** (règle de datation réappliquée le temps de la mesure, puis
+    retirée) : P médian 1,77 %, R 85/95, FD1 1/34, FD2 0,12. Trois des fausses détections du point 14 ont disparu
+    (graines 24, 72 et 84) : elles venaient bien des faux doublons. Deux restent (graines 57 et 75, désordre
+    réaliste), et FD2 dépasse encore le garde-fou de 0,10. Le point 14 reste donc non appliqué.
+
+    *Erreur de manipulation, corrigée.* Le commit `84d5967` contenait par mégarde, dans `bench/dev-m0.json`, les
+    résultats de cette mesure-ci (un banc lancé en arrière-plan avait réécrit le fichier juste avant le commit),
+    alors que le code et `bench/DEV_M0_BILAN.md` étaient ceux de la règle seule. Le fichier a été régénéré sur le
+    code validé ; il redonne P 2,14 %, R 80/95, FD1 1/34, FD2 0,09.
+
+16. **Le dernier relevé ne compte pas pour déclarer un manque ; le point 14 est appliqué (15 novembre 2026).**
+    Même ordre réel qu'au point 15 : essayé dans l'arbre de travail sur les graines de développement, puis décrit
+    ici et poussé avec le code.
+
+    *Ce qui restait après le point 15.* Avec la datation une à une du point 14 par-dessus la règle de doublons,
+    FD2 valait 0,12. Les trois fausses détections en cause, lues une à une : deux dérives de 2 et 6 unités sur
+    l'année, par marches d'une unité (graines 75 et 57) ; et une chute de 19 unités au seul dernier relevé
+    (graine 75), sur une série plate jusque-là.
+
+    *Règle* (`src/bilan/ecarts.js`). Un relevé pris dans les dix derniers jours des données est comparé à un
+    journal dont la saisie n'est pas terminée : des pièces produites avant lui n'y sont pas encore. Il n'entre pas
+    dans la recherche d'un manque sur un stock relevé chaque mois. Dix jours est le retard de saisie maximal déjà
+    retenu par `dates.js` ; ce n'est pas un nouveau réglage. Justification : c'est la même censure que celle que
+    `imputeCensored` traite déjà pour les lots de fin de mois.
+
+    *Résultat, vérifié sur ce dépôt* (`npm run bench:dev`, `bench/DEV_M0_BILAN.md`), points 14 et 16 ensemble :
+
+    | | Après le point 15 | Points 14 et 16 | Variante avec second tour (non retenue) | Garde-fou |
+    |---|---:|---:|---:|---|
+    | P médian, tout | 2,14 % | **1,77 %** | 1,77 % | — |
+    | P médian, désordre réaliste | 4,97 % | 4,37 % | 3,81 % | — |
+    | P médian, désordre propre | 0,99 % | 0,96 % | 0,96 % | — |
+    | S médian · F équilibré · L · G | 0,68 % · 0,944 · 0,856 · 0,941 | inchangés | inchangés | ✅ |
+    | R | 80/95 | **85/95** | 83/95 | ≥ 76/95 ✅ |
+    | FD1, placebos touchés | 1/34 | 1/34 | 1/34 | ≤ 1/34 ✅ |
+    | FD2 | 0,09 | **0,08** | 0,09 | ≤ 0,10 ✅ |
+    | FD2, désordre réaliste seul | 0,15 | 0,15 | 0,18 | — |
+
+    Tous les garde-fous tiennent. Le second tour du point 14 n'est pas retenu : il gagne sur P en désordre réaliste
+    mais perd deux flux retrouvés et ajoute une fausse détection, là où le test jugera.
+
+    **Lecture honnête du seuil.** P médian passe sous 2 % sur les 100 graines de développement, propres et
+    réalistes mêlées. Le test, lui, ne porte que sur le désordre réaliste : P y vaut 4,4 % et FD2 0,15, tous deux
+    hors seuil. Ce résultat ne dit donc pas que M0 passerait son test.
+
+    *Ce qui reste.* Une fausse détection nouvelle (graine 57 : une dérive de 6 unités en un an, de l'ordre des
+    erreurs de saisie de quantité), qu'un critère de matérialité écarterait ; il n'est pas écrit. Sur certaines
+    graines réalistes, le premier passage ne trouve toujours aucune incidence des types sur les stocks. Tests de
+    non-régression ajoutés (graines 72 et 3).
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
