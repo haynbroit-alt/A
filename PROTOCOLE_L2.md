@@ -70,3 +70,23 @@ rapport avec le prix. Une mesure d'effet doit porter sur l'objet piloté, ou sur
 ## 5. Graines
 
 Graines de développement (1 à 100) seulement. Les graines de test 5001 à 5300 ne sont ni générées ni exécutées.
+
+## 6. Résultat (15 novembre 2026)
+
+Code : `src/bench/generator.js`, `src/bench/archetypes.js` ; tests : `test/pilotage.test.js`. Le bilan de matière
+n'est pas touché.
+
+| Critère | Résultat |
+|---|---|
+| A1 identité sans intervention | **tenu** : 100 graines identiques à l'octet à la référence `32e02c2` |
+| A2 rien ne change avant d | **tenu** : stocks et événements réels identiques avant d, pour d ∈ {1, 90, 183, 300}, négoce et abonnement |
+| A3 l'intervention agit | **tenu** : toutes les ventes de l'objet au prix demandé après d ; seul changement de tarif : l'intervention |
+| A4 mêmes fuites | **tenu** sur 4 graines à flux cachés |
+| A5 M0 intact | **tenu** : `npm test` 44 réussis (23 existants, 21 nouveaux), `bench/dev-m0.json` non régénéré |
+
+Contrôle supplémentaire en désordre réaliste (négoce, un flux caché, graines 201 et 202, intervention au jour 183) :
+A2 et A4 tenus ; 5 744 ventes sur 5 768 et 3 906 sur 3 931 portent exactement le prix demandé, le reste étant les
+erreurs de quantité du désordre réaliste (0,5 % des lignes), sans rapport avec le pilotage.
+
+Choix à connaître : deux interventions le même jour sur le même objet, la dernière de la liste l'emporte ; un jeton
+sans prix n'est refusé qu'à la passe finale ; une entreprise de service n'a aucun prix pilotable.
