@@ -695,6 +695,15 @@ atteint. Rien n'est gelé.
     Garde-fous habituels. Limite assumée : la séparation observée repose sur 17 cas ; un vrai manque dont le taux
     serait sous le taux de doublons ne serait plus déclaré.
 
+    **Résultat, vérifié sur ce dépôt** (`npm run bench:dev`) : FD2 sur les 100 graines 0,08 → **0,06** ; FD2 en
+    désordre réaliste 0,15 → **0,12** ; FD1 1/34, R 85/95, P 1,77 %, S, F, L et G inchangés. Garde-fous tenus,
+    aucun vrai manque perdu. **L'attente n'est tenue qu'à moitié** : un seul des trois faux manques visés est
+    tombé (graine 57) ; ceux des graines 75 et 97 restent, parce que le taux de doublons de ces journaux est plus
+    bas que les 1,5 % que j'avais supposés (les pièces sans contrepartie, nombreuses, ne sont jamais jugées copies
+    et diluent le taux). La règle est gardée : elle retire une fausse détection sans rien coûter. Rapporter le taux
+    aux seules pièces qui peuvent être des copies serait une retouche après coup ; elle n'est pas faite. En désordre
+    réaliste, FD2 reste hors seuil (0,12 pour 0,10).
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
