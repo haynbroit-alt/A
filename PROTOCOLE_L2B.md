@@ -57,3 +57,22 @@ B3 le vérifie.
 
 Graines de développement 1 à 100 pour B1 ; 221 à 240 pour B2 et B3. Les graines de test 5001 à 5300 ne sont ni
 générées ni exécutées, et les graines 6041 à 6080 sont réservées au test de l'essai suivant.
+
+## 6. Résultat (15 novembre 2026)
+
+Code : `src/bench/generator.js`, `src/bench/archetypes.js` (fonction `products` seulement) ; tests :
+`test/demande.test.js`.
+
+| Critère | Résultat |
+|---|---|
+| B1 identité sans l'option | **tenu** : 100 graines identiques à l'octet à la référence `32e02c2` |
+| B2 les factures suivent le prix | **tenu** : 8 entreprises sur 10 facturent l'objet ; les 8 facturent moins à +25 % qu'à −20 % |
+| B3 la bonne direction varie | **tenu** : sur les graines 221 à 240, meilleur niveau en baisse dans 7 entreprises (−20 % : 5 ; −10,6 % : 2), en hausse dans 12 (+11,8 % : 7 ; +25 % : 5), prix inchangé dans 1 |
+| B4 le reste est intact | **tenu** : `npm test` 48 réussis ; `src/bilan/` non touché ; A2 et A4 tiennent avec l'option |
+
+B3 est mesuré dans l'espace commun (`haynbroit-alt/Tr`, `programme/t3b/dev.json`). La plage d'élasticité 0,8 à 5
+n'a pas eu à être révisée.
+
+Constat annexe, vu en mise au point de l'essai : après une baisse de prix, les ventes d'une semaine d'essai
+dépassent ce que le réapprovisionnement soutient dans la durée (une entreprise sur vingt y a perdu une décision).
+C'est la limite annoncée au § 4.
