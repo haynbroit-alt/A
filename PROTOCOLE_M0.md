@@ -672,6 +672,29 @@ atteint. Rien n'est gelé.
     graines réalistes, le premier passage ne trouve toujours aucune incidence des types sur les stocks. Tests de
     non-régression ajoutés (graines 72 et 3).
 
+17. **Matérialité d'un manque sur un stock relevé chaque mois (15 novembre 2026, écrit avant le code).**
+    *Mesure préalable, hors code, sur les 100 graines de développement.* La recherche d'un manque sur un stock
+    relevé chaque mois déclare aujourd'hui 17 manques : 12 vrais, 5 faux (jugés un à un par l'évaluation). Rapporté
+    au flux du stock après son début (somme des quantités de toutes ses pièces), le manque total vaut, pour les
+    faux : 0,38 ; 1,05 ; 1,41 ; 1,77 ; 2,32 % ; pour les vrais : 2,00 ; 2,34 ; 2,46 ; 3,02 ; 3,07 ; 3,20 ; 3,35 ;
+    3,94 ; 4,51 ; 4,51 ; 5,13 ; 8,79 %. Un premier critère essayé hors code est écarté : comparer le manque à la
+    quantité des pièces retirées comme doublons *sur ce stock* ne sépare rien (deux faux passent, un vrai tombe).
+
+    *Règle prévue* (`src/bilan/ecarts.js`). Un manque n'est déclaré sur un stock relevé chaque mois que si son
+    taux — manque total rapporté au flux du stock depuis son début — dépasse le **taux de doublons du journal**
+    (pièces écartées comme copies, rapportées au nombre de pièces). Aucune constante nouvelle. Justification : une
+    copie mal jugée déplace le stock d'une pièce entière ; si toutes les décisions de doublons étaient fausses,
+    l'erreur sur le flux atteindrait ce taux. En deçà, un manque ne se distingue pas de l'incertitude du moteur sur
+    les pièces elles-mêmes. Sur des données sans doublons, la borne s'annule et rien ne change.
+
+    *Attendu.* Le taux de doublons vaut environ 1,5 % en désordre réaliste et presque 0 en désordre propre. Les
+    trois faux manques les plus faibles (graines 57, 75, 97) devraient tomber ; les deux autres (graines 55 et 49,
+    à 1,77 et 2,32 %) sont au-dessus de la borne attendue et devraient rester ; aucun vrai manque ne devrait tomber
+    (le plus faible en désordre réaliste est à 2,46 %). Donc : FD2 sur les 100 graines 0,08 → environ 0,03 ; FD2 en
+    désordre réaliste 0,15 → environ 0,06 ; FD1 inchangé (1/34) ; R inchangé (85/95) ; P, S, F, L, G inchangés.
+    Garde-fous habituels. Limite assumée : la séparation observée repose sur 17 cas ; un vrai manque dont le taux
+    serait sous le taux de doublons ne serait plus déclaré.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
