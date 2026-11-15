@@ -56,3 +56,21 @@ une erreur. L'option se combine avec `demande: 'sensible'` et avec le pilotage.
 
 Développement 1 à 100 pour C1 ; 241 à 250 pour C2 et C3. Les graines de test 5001 à 5300 et les plages réservées
 de l'espace commun (6001 à 6220 déjà servies, 6221 et suivantes) ne sont ni générées ni exécutées.
+
+## 6. Résultat (15 novembre 2026)
+
+Code : `src/bench/generator.js`, `src/bench/archetypes.js` (fonction `products`) ; tests : `test/alea.test.js`.
+
+| Critère | Résultat |
+|---|---|
+| C1 identité sans l'option | **tenu** : 100 graines identiques à l'octet à la référence `32e02c2` |
+| C2 les autres objets ne bougent plus | **tenu** : 10 entreprises sur 10 avec l'option ; 0 sur 10 sans |
+| C3 deux prix, des ventes corrélées | **tenu** : corrélation supérieure à 0,5 dans 9 entreprises sur 10 (de 0,48 à 0,87) ; sans l'option, de −0,04 à 0,34 |
+| C4 le reste est intact | **tenu** : `npm test` 52 réussis ; `src/bilan/` non touché ; rien ne change avant l'intervention, mêmes fuites |
+
+Écart à ce que j'avais écrit : sans l'option, la corrélation n'est pas « proche de 0 » mais faible et positive
+(0,1 à 0,3). Les deux relances partagent le jour de la semaine et l'effet de la publicité ; cela n'a pas été
+mesuré séparément.
+
+Aucun autre tirage du flux partagé n'a eu à être déplacé : avec l'option, le nombre de tirages faits dans ce flux
+ne dépend plus du prix.
