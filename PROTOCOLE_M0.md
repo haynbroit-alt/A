@@ -672,6 +672,67 @@ atteint. Rien n'est gelé.
     graines réalistes, le premier passage ne trouve toujours aucune incidence des types sur les stocks. Tests de
     non-régression ajoutés (graines 72 et 3).
 
+17. **Matérialité d'un manque sur un stock relevé chaque mois (15 novembre 2026, écrit avant le code).**
+    *Mesure préalable, hors code, sur les 100 graines de développement.* La recherche d'un manque sur un stock
+    relevé chaque mois déclare aujourd'hui 17 manques : 12 vrais, 5 faux (jugés un à un par l'évaluation). Rapporté
+    au flux du stock après son début (somme des quantités de toutes ses pièces), le manque total vaut, pour les
+    faux : 0,38 ; 1,05 ; 1,41 ; 1,77 ; 2,32 % ; pour les vrais : 2,00 ; 2,34 ; 2,46 ; 3,02 ; 3,07 ; 3,20 ; 3,35 ;
+    3,94 ; 4,51 ; 4,51 ; 5,13 ; 8,79 %. Un premier critère essayé hors code est écarté : comparer le manque à la
+    quantité des pièces retirées comme doublons *sur ce stock* ne sépare rien (deux faux passent, un vrai tombe).
+
+    *Règle prévue* (`src/bilan/ecarts.js`). Un manque n'est déclaré sur un stock relevé chaque mois que si son
+    taux — manque total rapporté au flux du stock depuis son début — dépasse le **taux de doublons du journal**
+    (pièces écartées comme copies, rapportées au nombre de pièces). Aucune constante nouvelle. Justification : une
+    copie mal jugée déplace le stock d'une pièce entière ; si toutes les décisions de doublons étaient fausses,
+    l'erreur sur le flux atteindrait ce taux. En deçà, un manque ne se distingue pas de l'incertitude du moteur sur
+    les pièces elles-mêmes. Sur des données sans doublons, la borne s'annule et rien ne change.
+
+    *Attendu.* Le taux de doublons vaut environ 1,5 % en désordre réaliste et presque 0 en désordre propre. Les
+    trois faux manques les plus faibles (graines 57, 75, 97) devraient tomber ; les deux autres (graines 55 et 49,
+    à 1,77 et 2,32 %) sont au-dessus de la borne attendue et devraient rester ; aucun vrai manque ne devrait tomber
+    (le plus faible en désordre réaliste est à 2,46 %). Donc : FD2 sur les 100 graines 0,08 → environ 0,03 ; FD2 en
+    désordre réaliste 0,15 → environ 0,06 ; FD1 inchangé (1/34) ; R inchangé (85/95) ; P, S, F, L, G inchangés.
+    Garde-fous habituels. Limite assumée : la séparation observée repose sur 17 cas ; un vrai manque dont le taux
+    serait sous le taux de doublons ne serait plus déclaré.
+
+    **Résultat, vérifié sur ce dépôt** (`npm run bench:dev`) : FD2 sur les 100 graines 0,08 → **0,06** ; FD2 en
+    désordre réaliste 0,15 → **0,12** ; FD1 1/34, R 85/95, P 1,77 %, S, F, L et G inchangés. Garde-fous tenus,
+    aucun vrai manque perdu. **L'attente n'est tenue qu'à moitié** : un seul des trois faux manques visés est
+    tombé (graine 57) ; ceux des graines 75 et 97 restent, parce que le taux de doublons de ces journaux est plus
+    bas que les 1,5 % que j'avais supposés (les pièces sans contrepartie, nombreuses, ne sont jamais jugées copies
+    et diluent le taux). La règle est gardée : elle retire une fausse détection sans rien coûter. Rapporter le taux
+    aux seules pièces qui peuvent être des copies serait une retouche après coup ; elle n'est pas faite. En désordre
+    réaliste, FD2 reste hors seuil (0,12 pour 0,10).
+
+18. **Second tour quand le premier passage est aveugle (15 novembre 2026, écrit avant le code).**
+    *Mesure préalable, hors code.* Sur 7 des 100 graines de développement, toutes en désordre réaliste (15, 21, 61,
+    69, 81, 93, 99 ; six du troisième archétype), le premier passage ne trouve **aucune** incidence des types sur
+    les stocks relevés chaque mois : les étapes de datation qui en dépendent ne s'exécutent pas. Leur S va de 13 à
+    26 % (sauf la 61 : 0,5 %) et leur P de 4,9 à 8,9 %. Au point 14, un second tour appliqué à *toutes* les graines
+    avait été écarté : il coûtait deux flux retrouvés sur des graines qui n'en avaient pas besoin.
+
+    *Règle prévue* (`src/bilan/index.js`). Si, et seulement si, le premier passage n'a attribué d'incidence à aucun
+    type portant des quantités sur un stock relevé chaque mois, les dates sont réestimées une seconde fois avec
+    l'incidence trouvée au second passage, puis les stocks recalculés. Les 93 autres graines suivent exactement le
+    même chemin qu'aujourd'hui. Justification : inchangée depuis le point 14 — les dates ont besoin de l'incidence,
+    et l'incidence des dates ; ici le premier aller est aveugle.
+
+    *Attendu.* Rien ne change hors de ces 7 graines. Sur elles, d'après la mesure du point 14 : P baisse nettement
+    sur la 21 (vers 2 %) et la 93 (vers 4,4 %), peu ou pas sur les autres ; S presque inchangé, parce que S se joue
+    au jour près à l'intérieur du mois. P médian en désordre réaliste : 4,37 % → entre 4,1 et 4,3 %. Risque connu :
+    une fausse détection sur la graine 21 (vue au point 14), que les points 16 et 17 devraient avoir écartée.
+    Garde-fous habituels sur les 100 graines.
+
+    **Résultat, vérifié sur ce dépôt** (`npm run bench:dev`). Trois graines changent, et elles seules : la 15
+    (P 6,2 → 6,3 % ; S 15,4 → 8,5 %), la 21 (P 8,9 → 2,0 % ; S 18,5 → 9,3 %) et la 93 (P 7,6 → 4,4 % ;
+    S 13,1 → 8,0 %). Aucune fausse détection nouvelle, aucun flux perdu. P médian en désordre réaliste :
+    4,37 % → **3,78 %** ; troisième archétype : 4,86 → 4,31 % ; P médian sur les 100 graines (1,77 %), R (85/95),
+    FD1 (1/34), FD2 (0,06), F, L, G et S médian inchangés. Garde-fous tenus. Deux écarts à mon attente, tous deux
+    dans le bon sens : P réaliste descend plus bas que la fourchette annoncée (4,1 à 4,3 %), et S s'améliore
+    nettement sur ces trois graines alors que je l'attendais presque inchangé. Les quatre autres graines aveugles
+    (61, 69, 81, 99) ne bougent pas : la raison n'est pas établie. Test de non-régression ajouté (graine 21).
+    En désordre réaliste, P reste hors seuil (3,8 % pour 2 %).
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis

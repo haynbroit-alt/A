@@ -70,3 +70,11 @@ test('une entrée saisie après un relevé est redatée quand cela réduit les d
   const m = evaluate(truth, bilan(observed));
   assert.ok(m.P < 0.04, JSON.stringify({ P: m.P }));
 });
+
+// Graine de développement 21 : le premier passage ne trouve aucune incidence sur les stocks relevés ; le second
+// tour redate les entrées de stock et le profit mensuel redevient juste.
+test('quand le premier passage est aveugle, un second tour de datation rétablit le profit', () => {
+  const { observed, truth } = generate(21, devClass(21));
+  const m = evaluate(truth, bilan(observed));
+  assert.ok(m.P < 0.04 && m.FD === 0, JSON.stringify({ P: m.P, FD: m.FD }));
+});

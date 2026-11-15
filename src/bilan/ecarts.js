@@ -66,6 +66,13 @@ export function inferEcarts(observed, S, typeOf, links, dup) {
     const A = t.map((d) => amb[d]), am = A.reduce((s, x) => s + x, 0) / A.length, em = e.reduce((s, x) => s + x, 0) / e.length;
     const saa = A.reduce((s, x) => s + (x - am) ** 2, 0), sae = A.reduce((s, x, k) => s + (x - am) * (e[k] - em), 0);
     const rssTypage = saa > 0 ? f.rss0 - (sae * sae) / saa : f.rss0;
+    // matérialité : une copie mal jugée déplace le stock d'une pièce entière ; un manque dont le taux (manque total
+    // rapporté au flux du stock depuis son début) ne dépasse pas le taux de copies du journal ne se distingue pas
+    // de l'incertitude sur les pièces elles-mêmes
+    let flux = 0;
+    for (const r of observed.journal) { if (r.jour < f.tau) continue; const dl = S.deltas.get(r.id)?.find(([s]) => s === st.id); if (dl) flux += Math.abs(dl[1]); }
+    const taux = flux > 0 ? (f.b * (D - f.tau)) / flux : Infinity;
+    if (taux <= dup.size / observed.journal.length) continue;
     if (lr >= LR_MONTHLY && lrStep > 2 && rssTypage > f.rss) ecarts.push({ stock: st.id, debut: f.tau, debit: f.b, preuve: `rapport de vraisemblance ${lr.toFixed(1)}` });
   }
   // ---- 3. stocks en cours soldés à taux constant < 1 ----
