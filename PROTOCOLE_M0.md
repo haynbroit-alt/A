@@ -622,6 +622,16 @@ atteint. Rien n'est gelé.
     propre (surtout des relevés d'heures au rythme irrégulier). Suite en cours : remesurer le point 14 par-dessus
     cette règle, pour savoir si les fausses détections venaient bien de là.
 
+    **Point 14 remesuré par-dessus cette règle** (règle de datation réappliquée le temps de la mesure, puis
+    retirée) : P médian 1,77 %, R 85/95, FD1 1/34, FD2 0,12. Trois des fausses détections du point 14 ont disparu
+    (graines 24, 72 et 84) : elles venaient bien des faux doublons. Deux restent (graines 57 et 75, désordre
+    réaliste), et FD2 dépasse encore le garde-fou de 0,10. Le point 14 reste donc non appliqué.
+
+    *Erreur de manipulation, corrigée.* Le commit `84d5967` contenait par mégarde, dans `bench/dev-m0.json`, les
+    résultats de cette mesure-ci (un banc lancé en arrière-plan avait réécrit le fichier juste avant le commit),
+    alors que le code et `bench/DEV_M0_BILAN.md` étaient ceux de la règle seule. Le fichier a été régénéré sur le
+    code validé ; il redonne P 2,14 %, R 80/95, FD1 1/34, FD2 0,09.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
