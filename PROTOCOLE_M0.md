@@ -723,6 +723,16 @@ atteint. Rien n'est gelé.
     une fausse détection sur la graine 21 (vue au point 14), que les points 16 et 17 devraient avoir écartée.
     Garde-fous habituels sur les 100 graines.
 
+    **Résultat, vérifié sur ce dépôt** (`npm run bench:dev`). Trois graines changent, et elles seules : la 15
+    (P 6,2 → 6,3 % ; S 15,4 → 8,5 %), la 21 (P 8,9 → 2,0 % ; S 18,5 → 9,3 %) et la 93 (P 7,6 → 4,4 % ;
+    S 13,1 → 8,0 %). Aucune fausse détection nouvelle, aucun flux perdu. P médian en désordre réaliste :
+    4,37 % → **3,78 %** ; troisième archétype : 4,86 → 4,31 % ; P médian sur les 100 graines (1,77 %), R (85/95),
+    FD1 (1/34), FD2 (0,06), F, L, G et S médian inchangés. Garde-fous tenus. Deux écarts à mon attente, tous deux
+    dans le bon sens : P réaliste descend plus bas que la fourchette annoncée (4,1 à 4,3 %), et S s'améliore
+    nettement sur ces trois graines alors que je l'attendais presque inchangé. Les quatre autres graines aveugles
+    (61, 69, 81, 99) ne bougent pas : la raison n'est pas établie. Test de non-régression ajouté (graine 21).
+    En désordre réaliste, P reste hors seuil (3,8 % pour 2 %).
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
