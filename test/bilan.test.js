@@ -55,3 +55,18 @@ test('le manque d\'un écart déclaré sur un stock en cours est retiré du prof
   const m = evaluate(truth, bilan(observed));
   assert.ok(m.hiddenFound >= 1 && m.P < 0.02, JSON.stringify({ P: m.P, R: m.hiddenFound }));
 });
+
+// Graine de développement 72 (placebo) : deux pièces légitimes, identiques à celle de la veille, ne sont plus
+// retirées comme doublons ; plus aucun manque n'est déclaré sur le stock qu'elles concernent.
+test('une entreprise sans flux caché ne reçoit aucune fausse détection quand ses répétitions sont légitimes', () => {
+  const { observed, truth } = generate(72, devClass(72));
+  const m = evaluate(truth, bilan(observed));
+  assert.equal(m.FD, 0, JSON.stringify({ FD: m.FD }));
+});
+
+// Graine de développement 3 : des entrées de stock saisies après un relevé sont ramenées avant lui.
+test('une entrée saisie après un relevé est redatée quand cela réduit les deux écarts voisins', () => {
+  const { observed, truth } = generate(3, devClass(3));
+  const m = evaluate(truth, bilan(observed));
+  assert.ok(m.P < 0.04, JSON.stringify({ P: m.P }));
+});

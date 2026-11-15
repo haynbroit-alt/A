@@ -9,6 +9,7 @@
 
 // seuil du rapport de vraisemblance pour les stocks relevés chaque mois, par stock (fixé sur les graines de
 // développement uniquement ; voir PROTOCOLE_M0.md, § 9)
+import { MAX_SHIFT } from './dates.js';
 export const LR_MONTHLY = 22;
 
 function fitLoss(t, e) {
@@ -49,7 +50,11 @@ export function inferEcarts(observed, S, typeOf, links, dup) {
   }
   // ---- 2. stocks relevés chaque mois ----
   for (const st of S.stocks.filter((x) => x.releveM)) {
-    const t = st.releveM.map((x) => x.jour), e = st.releveM.map((x) => x.valeur - st.raw[x.jour]);
+    // un relevé pris dans les derniers jours des données est comparé à un journal dont la saisie n'est pas
+    // terminée : des pièces produites avant lui manquent encore. Il ne compte pas pour déclarer un manque
+    const rel = st.releveM.filter((x) => D - 1 - x.jour >= MAX_SHIFT);
+    if (rel.length < 4) continue;
+    const t = rel.map((x) => x.jour), e = rel.map((x) => x.valeur - st.raw[x.jour]);
     const f = fitLoss(t, e);
     if (f.tau == null || f.rss <= 0) continue;
     const lr = f.n * Math.log(f.rss0 / f.rss), lrStep = f.n * Math.log(f.step / f.rss);

@@ -632,6 +632,46 @@ atteint. Rien n'est gelé.
     alors que le code et `bench/DEV_M0_BILAN.md` étaient ceux de la règle seule. Le fichier a été régénéré sur le
     code validé ; il redonne P 2,14 %, R 80/95, FD1 1/34, FD2 0,09.
 
+16. **Le dernier relevé ne compte pas pour déclarer un manque ; le point 14 est appliqué (15 novembre 2026).**
+    Même ordre réel qu'au point 15 : essayé dans l'arbre de travail sur les graines de développement, puis décrit
+    ici et poussé avec le code.
+
+    *Ce qui restait après le point 15.* Avec la datation une à une du point 14 par-dessus la règle de doublons,
+    FD2 valait 0,12. Les trois fausses détections en cause, lues une à une : deux dérives de 2 et 6 unités sur
+    l'année, par marches d'une unité (graines 75 et 57) ; et une chute de 19 unités au seul dernier relevé
+    (graine 75), sur une série plate jusque-là.
+
+    *Règle* (`src/bilan/ecarts.js`). Un relevé pris dans les dix derniers jours des données est comparé à un
+    journal dont la saisie n'est pas terminée : des pièces produites avant lui n'y sont pas encore. Il n'entre pas
+    dans la recherche d'un manque sur un stock relevé chaque mois. Dix jours est le retard de saisie maximal déjà
+    retenu par `dates.js` ; ce n'est pas un nouveau réglage. Justification : c'est la même censure que celle que
+    `imputeCensored` traite déjà pour les lots de fin de mois.
+
+    *Résultat, vérifié sur ce dépôt* (`npm run bench:dev`, `bench/DEV_M0_BILAN.md`), points 14 et 16 ensemble :
+
+    | | Après le point 15 | Points 14 et 16 | Variante avec second tour (non retenue) | Garde-fou |
+    |---|---:|---:|---:|---|
+    | P médian, tout | 2,14 % | **1,77 %** | 1,77 % | — |
+    | P médian, désordre réaliste | 4,97 % | 4,37 % | 3,81 % | — |
+    | P médian, désordre propre | 0,99 % | 0,96 % | 0,96 % | — |
+    | S médian · F équilibré · L · G | 0,68 % · 0,944 · 0,856 · 0,941 | inchangés | inchangés | ✅ |
+    | R | 80/95 | **85/95** | 83/95 | ≥ 76/95 ✅ |
+    | FD1, placebos touchés | 1/34 | 1/34 | 1/34 | ≤ 1/34 ✅ |
+    | FD2 | 0,09 | **0,08** | 0,09 | ≤ 0,10 ✅ |
+    | FD2, désordre réaliste seul | 0,15 | 0,15 | 0,18 | — |
+
+    Tous les garde-fous tiennent. Le second tour du point 14 n'est pas retenu : il gagne sur P en désordre réaliste
+    mais perd deux flux retrouvés et ajoute une fausse détection, là où le test jugera.
+
+    **Lecture honnête du seuil.** P médian passe sous 2 % sur les 100 graines de développement, propres et
+    réalistes mêlées. Le test, lui, ne porte que sur le désordre réaliste : P y vaut 4,4 % et FD2 0,15, tous deux
+    hors seuil. Ce résultat ne dit donc pas que M0 passerait son test.
+
+    *Ce qui reste.* Une fausse détection nouvelle (graine 57 : une dérive de 6 unités en un an, de l'ordre des
+    erreurs de saisie de quantité), qu'un critère de matérialité écarterait ; il n'est pas écrit. Sur certaines
+    graines réalistes, le premier passage ne trouve toujours aucune incidence des types sur les stocks. Tests de
+    non-régression ajoutés (graines 72 et 3).
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
