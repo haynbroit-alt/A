@@ -570,6 +570,18 @@ atteint. Rien n'est gelé.
     Autre constat à garder : sur certaines graines réalistes, le premier passage ne trouve aucune incidence des
     types sur les stocks relevés, et aucune des étapes de datation par quantités ne s'exécute.
 
+    **Diagnostic des fausses détections (15 novembre 2026), qui corrige l'hypothèse ci-dessus.** Règle réappliquée
+    le temps d'une lecture, puis retirée ; graines 24, 39, 57, 72, 75, 84, 88. Les manques déclarés à tort sur des
+    stocks d'objets ont des débits **minuscules** — 0,01 ; 0,02 ; 0,08 ; 0,19 ; 0,23 ; 0,37 ; 0,64 unité par jour —
+    avec des rapports de vraisemblance de 29 à 60, et des débuts répartis sur toute l'année (jours 44, 152, 163,
+    182, 183, 274, 332). Donc : (a) **la censure de fin d'année n'est pas la cause** — cette partie de l'hypothèse
+    est réfutée ; (b) le reste tient : le critère de `ecarts.js` est un rapport de variances sur douze relevés,
+    sans échelle absolue ; sur une série devenue presque exacte, une dérive de quelques unités dans l'année suffit
+    à le franchir. Quatre de ces graines sont en désordre propre, où le relevé est exact. Ce qui manque est un
+    critère de **matérialité** : un manque ne devrait être déclaré que s'il dépasse ce que les relevés permettent de
+    mesurer. D'où vient la petite dérive résiduelle elle-même (déplacements erronés de l'étape 4, ou autre) n'est
+    pas établi. La graine 39 est d'une autre nature : une fausse détection sur un stock en cours.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
