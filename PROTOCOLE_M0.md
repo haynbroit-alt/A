@@ -704,6 +704,25 @@ atteint. Rien n'est gelé.
     aux seules pièces qui peuvent être des copies serait une retouche après coup ; elle n'est pas faite. En désordre
     réaliste, FD2 reste hors seuil (0,12 pour 0,10).
 
+18. **Second tour quand le premier passage est aveugle (15 novembre 2026, écrit avant le code).**
+    *Mesure préalable, hors code.* Sur 7 des 100 graines de développement, toutes en désordre réaliste (15, 21, 61,
+    69, 81, 93, 99 ; six du troisième archétype), le premier passage ne trouve **aucune** incidence des types sur
+    les stocks relevés chaque mois : les étapes de datation qui en dépendent ne s'exécutent pas. Leur S va de 13 à
+    26 % (sauf la 61 : 0,5 %) et leur P de 4,9 à 8,9 %. Au point 14, un second tour appliqué à *toutes* les graines
+    avait été écarté : il coûtait deux flux retrouvés sur des graines qui n'en avaient pas besoin.
+
+    *Règle prévue* (`src/bilan/index.js`). Si, et seulement si, le premier passage n'a attribué d'incidence à aucun
+    type portant des quantités sur un stock relevé chaque mois, les dates sont réestimées une seconde fois avec
+    l'incidence trouvée au second passage, puis les stocks recalculés. Les 93 autres graines suivent exactement le
+    même chemin qu'aujourd'hui. Justification : inchangée depuis le point 14 — les dates ont besoin de l'incidence,
+    et l'incidence des dates ; ici le premier aller est aveugle.
+
+    *Attendu.* Rien ne change hors de ces 7 graines. Sur elles, d'après la mesure du point 14 : P baisse nettement
+    sur la 21 (vers 2 %) et la 93 (vers 4,4 %), peu ou pas sur les autres ; S presque inchangé, parce que S se joue
+    au jour près à l'intérieur du mois. P médian en désordre réaliste : 4,37 % → entre 4,1 et 4,3 %. Risque connu :
+    une fausse détection sur la graine 21 (vue au point 14), que les points 16 et 17 devraient avoir écartée.
+    Garde-fous habituels sur les 100 graines.
+
 ## 10. Exécution du test
 
 À compléter au moment du gel : commit du bilan gelé, commit des archétypes de test, commande exacte, puis
